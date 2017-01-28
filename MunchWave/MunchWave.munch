@@ -1,35 +1,40 @@
 options:
-  iargs: &aKits> &7Found invalid argument!
-  noperm: &aKits> &7You need a higher rank to do that.
+  prefix: &aKits>
+  iargs: {@prefix} &7Found invalid argument!
+  noperm: {@prefix} &7You need a higher rank to do that.
+
+# Messages
+  ConfWave: {@prefix} &7Are you sure? (&cYou have 10 seconds&7) &c/bwn &7(no) &a/bwy &7(yes).
+
 command /banwave [<text>] [<offlineplayer>]:
   permission: munchkits.banwave
   permission message: {@noperm}
   trigger:
     if arg 1 is not set:
       send "{@iargs}"
-      send "Can be: List/Add/Remove/Start"
+      send "&cCan be: List/Add/Remove/Start"
       stop
     if arg 2 is not set:
       if arg 1 is not "start" or "list":
         send "{@iargs}"
-        send "Can be: <player name>"
+        send "&cCan be: <player name>"
         stop
     if arg 1 is "list":
       send "&aPlayers in the tsunami: %{munchwave.wave::*}%"
       stop
     else if arg 1 is "add":
       add arg 2 to {munchwave.wave::*}
-      send "&aKits> &7Player &c%arg 2% &7added to the banwave."
+      send "{@prefix} &7Player &c%arg 2% &7added to the banwave."
     else if arg 1 is "remove":
       remove arg 2 from {munchwave.wave::*}
-      send "&aKits> &7Player &c%arg 2% &7removed from the banwave."
+      send "{@prefix} &7Player &c%arg 2% &7removed from the banwave."
     else if arg 1 is "start":
       set {munchkits.user.%player%.onconf} to true
-      send "&cAre you sure? &7(You have 10 seconds) &c/bwn &7(no) &a/bwy &7(yes)."
+      send "{@ConfWave}"
       wait 10 seconds
       if {munchkits.user.%player%.onconf} is set:
         delete {munchkits.user.%player%.onconf}
-        send "&aKits> &7Banwave Expired."
+        send "{@prefix} &7Banwave Expired."
 
 command /bwn:
   permission: munchkits.banwave
@@ -37,7 +42,7 @@ command /bwn:
   trigger:
     if {munchkits.user.%player%.onconf} is set:
       delete {munchkits.user.%player%.onconf}
-      send "&aKits> &7Ban wave &cCANCELLED&7."
+      send "{@prefix} &7Ban wave &cCANCELLED&7."
 
 command /bwy:
   permission: munchkits.banwave
@@ -45,7 +50,7 @@ command /bwy:
   trigger:
     if {munchkits.user.%player%.onconf} is set:
       delete {munchkits.user.%player%.onconf}
-      send "&aKits> &7Ban wave &cSTARTED&7."
+      send "{@prefix} &7Ban wave &cSTARTED&7."
       broadcast "&c&lBAN WAVE ACTIVATED. RUN THERE'S A TSUNAMI!"
       wait 1 ticks
       broadcast "&c&lBan Wave in &c5 &c&lSECONDS!"
