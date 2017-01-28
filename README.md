@@ -1,2 +1,2 @@
-# MunchKits
-A Copy of MunchyMC's KitPvP Plugin in Skript
+#Addons
+Addons can be installed in plugins/Munchkits/addons/<AddonName>.munch
