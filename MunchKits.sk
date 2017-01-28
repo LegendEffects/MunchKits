@@ -1,1 +1,967 @@
-PlaceHolderCurrently
+options:
+  resetStatsOnLeave: true
+  # Messages
+  prefix: &aKits>
+  noperm: &aKits> &7You need a higher rank to do that.
+  CasualNotSet: &c&lSevere> Casual is not set
+  # General
+  JoinMessage: &aWelcome to KitPVP!
+  MuteBroadcast: &a%arg 1% has been muted by %player%
+  BanBroadcast: &a%arg 1% has been banned by %player%
+  UnMuteBroadcast: &a%arg 1% has been unmuted by %player%
+  UnBanBroadcast: &a%arg 1% has been unbanned by %player%
+
+on quit:
+  delete {munchykits.user.%player%.flight}
+
+# ## ---[ Punishments ]--- ###
+
+# Mutes
+command /mute [<player>] [<text>]:
+  permission: munchkits.admin.mute
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "{@prefix} &7Usage: /mute <player> <reason>"
+      stop
+    if arg 2 is not set:
+      send "{@prefix} &7Usage: /mute <player> <reason>"
+      stop
+    if {munchykits.punishments.mute.%arg 1%} is not set:
+      set {munchykits.punishments.mute.%arg 1%} to true
+      set {munchykits.punishments.mute.%arg 1%.reason} to arg 2
+      set {munchykits.punishments.mute.%arg 1%.punisher} to player
+      send "&aYou have muted &c%arg 1% &afor '&c%arg 2%&a'."
+      loop all players:
+        if loop-player has the permission "munchkits.admin":
+          send "&c%arg 1% &ahas been muted by &c%player% &afor '&c%arg 2%&a'." to loop-player
+      broadcast "{@MuteBroadcast}"
+    else:
+      send "{@prefix} &7That player is already muted by &c%{munchykits.punishments.mute.%arg 1%.punisher}% &7for '&c%{munchykits.punishments.mute.%arg 1%.reason}%&7'."
+
+command /unmute [<player>]:
+  permission: munchkits.admin.unmute
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "{@prefix} &7You need to specify a player"
+      stop
+    if {munchykits.punishments.mute.%arg 1%} is set:
+      delete {munchykits.punishments.mute.%arg 1%}
+      delete {munchykits.punishments.mute.%arg 1%.reason}
+      delete {munchykits.punishments.mute.%arg 1%.punisher}
+      send "{@prefix} &7Player &c%arg 1%&7 successfully unmuted."
+      send "{@prefix} &aYou have unbanned &c%arg 1%&a."
+      loop all players:
+        if loop-player has the permission "munchkits.admin":
+          send "&c%arg 1% &ahas been unmuted by &c%player%&a." to loop-player
+      broadcast "{@UnMuteBroadcast}"
+    else:
+      send "{@prefix} &7Player &c%arg 1%&7 is currently not muted."
+
+on chat:
+  if {munchykits.punishments.mute.%player%} is set:
+    cancel event
+    send "&cYou are currently muted for '&c%{munchykits.punishments.mute.%player%.reason}%'."
+    stop
+
+# Bans
+command /ban [<offlineplayer>] [<text>]:
+  permission: munchkits.admin.ban
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "{@prefix} &7Usage: /ban <player> <reason>"
+      stop
+    if arg 2 is not set:
+      send "{@prefix} &7Usage: /ban <player> <reason>"
+      stop
+    set {munchykits.punishments.ban.%arg 1%} to true
+    set {munchykits.punishments.ban.%arg 1%.punisher} to player
+    set {munchykits.punishments.ban.%arg 1%.reason} to arg 2
+    set {munchykits.punishments.ban.%arg 1%.ip} to false
+    set {munchykits.punishments.ban.%arg 1%.time} to now
+    set {munchykits.punishments.ban.%arg 1%.expire} to "Never"
+    send "{@prefix} &aYou have banned &c%arg 1% &afor &c%arg 2%&a."
+    loop all players:
+      if loop-player has the permission "munchkits.admin":
+        send "&c%arg 1% &ahas been banned by &c%player% &afor '&c%arg 2%&a'." to loop-player
+    broadcast "{@BanBroadcast}"
+
+command /unban [<offlineplayer>]:
+  permission: munchkits.admin.unban
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "{@prefix} &7Usage: /unban <player>"
+      stop
+    delete {munchykits.punishments.ban.%arg 1%}
+    delete {munchykits.punishments.ban.%arg 1%.punisher}
+    delete {munchykits.punishments.ban.%arg 1%.reason}
+    delete {munchykits.punishments.ban.%arg 1%.ip}
+    delete {munchykits.punishments.ban.%arg 1%.time}
+    delete {munchykits.punishments.ban.%arg 1%.expire}
+    send "{@prefix} &aYou have unbanned &c%arg 1%&a."
+    loop all players:
+      if loop-player has the permission "munchkits.admin":
+        send "&c%arg 1% &ahas been unbanned by &c%player%&a." to loop-player
+    broadcast "{@UnBanBroadcast}"
+
+# ## ---[ Essential Commands ]--- ###
+
+# # User Experience
+
+# Help - Provides a help menu to the user
+command /help:
+  trigger:
+    send "&8--------------[ &aMunchKits Player &aHelp &7(1/1) &8]--------------"
+    send "&7/report (player) (reason) &8| &cReport a player to the admins."
+
+# Report - Allows a user to report someone to the admins. Admins can turn report alerts off.
+command /report [<player>] [<text>]:
+  permission: munchkits.report
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "{@prefix} &7You need to specify a player."
+      stop
+    if arg 2 is not set:
+      send "{@prefix} &7You need to specify a reason."
+      stop
+    else:
+      send "{@prefix} &7Your report has been recieved expect a response shortly."
+      send "{@prefix} &7Report info: ID: %{munchkits.main.reports.id}% Player: %player%"
+      add 1 to {munchkits.main.reports.id}
+      loop all players:
+        if loop-player has the permission "munchykits.admin.reports":
+          if {munchkits.user.%loop-player%.staff.reports} is set:
+            send "&7[&c&lReport&7(##&c%{munchkits.main.reports.id}%&7)] &a%player%&8: &c%arg 1% &7for &7%arg 2%&7." to loop-player
+            play "CLICK" to loop-player at volume 1
+
+# ## ---[ Needed ]--- ###
+
+# Soup Heal
+on click with mushroom stew:
+  if {munchkits.user.%player%.spawnprot} is set:
+    if player's health is not equal to player's max health:
+      cancel event
+      heal the player by 3.5 hearts
+      add 10 to player's hunger bar
+      set tool to bowl
+
+# # Player General Setup
+# First Join Player Setup.
+on first join:
+  set {munchkits.user.%player%.firstjoin} to now
+  if {munchkits.user.%player%.duelitem} is not set:
+    set {munchkits.user.%player%.duelitem} to true
+  if {munchkits.user.%player%.compitem} is not set:
+    set {munchkits.user.%player%.duelitem} to true
+
+# Every join setup
+on join:
+  if {kills::%player%} is not set:
+    set {kills::%player%} to 0
+  if {deaths::%player%} is not set:
+    set {deaths::%player%} to 0
+  if {balance::%player%} is not set:
+    set {balance::%player%} to 0
+  if {munchkits.main.warps.mainspawn} is not set:
+    send "{@CasualNotSet}"
+  else:
+    # Player inv // spawn setup.
+    teleport player to {munchkits.main.warps.mainspawn}
+    send "{@JoinMessage}"
+    # Scoreboard check
+    if {munchkits.user.%player%.sb.toggle} is set:
+      make player execute command "/munchscore refresh"
+    # Inv setup
+    clear player's inventory
+    wait 1 ticks
+    set slot 0 of player's inventory to chest named "&aKit Selector"
+    set slot 8 of player's inventory to nether star named "&aOptions"
+    # checking if heal type is soup or pots
+    if {munchkits.user.%player%.healtype} is 1:
+      set slot 3 of player's inventory to potion of healing named "&aHealType: Pot"
+    else:
+      set slot 3 of player's inventory to mushroom stew named "&aHealType: Soup"
+    # Checks user settings if comp // duel item are enabled
+    if {munchkits.user.%player%.compitem} is set:
+      set slot 6 of player's inventory to iron chestplate named "&aCompetitive"
+    if {munchkits.user.%player%.duelitem} is set:
+      set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
+
+# Player Stats
+command /stats [<player>]:
+  trigger:
+    if arg 1 is not set:
+      send "&7Your current stats:"
+      send "&aBalance: %{balance::%player%}%"
+      send "&7------------------------"
+      send "&aKills: %{kills::%player%}%"
+      send "&cDeaths: %{deaths::%player%}%"
+
+
+# Spawn
+command /spawn:
+  trigger:
+    send "&aPlease stand still for 5 seconds"
+    clear player's inventory
+    teleport player to {munchkits.main.warps.mainspawn}
+    set slot 0 of player's inventory to chest named "&aKit Selector"
+    set slot 8 of player's inventory to nether star named "&aOptions"
+    if {munchkits.user.%player%.healtype} is 1:
+      set slot 3 of player's inventory to potion of healing named "&aHealType: Pot"
+    else:
+      set slot 3 of player's inventory to mushroom stew named "&aHealType: Soup"
+    if {munchkits.user.%player%.compitem} is set:
+      set slot 6 of player's inventory to iron chestplate named "&aCompetitive"
+    if {munchkits.user.%player%.duelitem} is set:
+      set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
+
+
+# ## ---[ Scoreboard ]--- ###
+command /munchscore [<text>] [<text>] [<text>]:
+  trigger:
+    if arg 1 is "refresh":
+      # Checks if scoreboard is enabled and refreshes
+      if {munchkits.user.%player%.sb.toggle} is set:
+        wipe player sidebar
+        set name of sidebar of player to " "
+        set name of sidebar of player to "&c&lKITPVP"
+        set score "&7Player &c%player%&7:" in sidebar of player to 5
+        set score "&6  » &eCoins: &c%{balance::%player%}%" in sidebar of player to 4
+        set score "&6  » &eKills: &c%{kills::%player%}%" in sidebar of player to 3
+        set score "&6  » &eDeaths: &c%{deaths::%player%}%" in sidebar of player to 2
+        set score "" in sidebar of player to 1
+        set score "&8---[CrunchyMC.com]---" in sidebar of player to 0
+      # Checks if user is in staff
+      if {munchkits.user.%player%.staff} is set:
+        wipe player sidebar
+        set name of sidebar of player to " "
+        set name of sidebar of player to "&c&lKITPVP"
+        set score "&7Player &c%player%&7:" in sidebar of player to 10
+        set score "&6  » &eCoins: &c%{balance::%player%}%" in sidebar of player to 9
+        set score "&6  » &eKills: &c%{kills::%player%}%" in sidebar of player to 8
+        set score "&6  » &eDeaths: &c%{deaths::%player%}%" in sidebar of player to 7
+        set score "&7" in sidebar of player to 6
+        set score "&6&lStaff Mode&7&l:" in sidebar of player to 5
+        if {munchkits.user.%player%.vanish} is true:
+          set score "&6  » &eVanish: &aTrue" in sidebar of player to 4
+        else:
+          set score "&6  » &eVanish: &cFalse" in sidebar of player to 4
+        if {munchkits.user.%player%.gamemode} is 1:
+          set score "&6  » &eGamemode: &aCreative" in sidebar of player to 3
+        else:
+          set score "&6  » &eGamemode: &cSurvival" in sidebar of player to 3
+        if {munchkits.user.%player%.staffchat} is true:
+          set score "&6  » &eStaff Chat: &aTrue" in sidebar of player to 2
+        else:
+          set score "&6  » &eStaff Chat: &cFalse" in sidebar of player to 2
+        set score "" in sidebar of player to 1
+        set score "&8---[CrunchyMC.com]---" in sidebar of player to 0
+    # Scoreboard toggle
+    else if arg 1 is "toggle":
+      if arg 2 is not set:
+        if {munchkits.user.%player%.sb.toggle} is not set:
+          set {munchkits.user.%player%.sb.toggle} to true
+          send "&a{@prefix} &7Scoreboard toggled &aON"
+          make player execute command "/munchscore refresh"
+        else:
+          delete {munchkits.user.%player%.sb.toggle}
+          wipe player sidebar
+          send "{@prefix} &7Scoreboard toggled &cOFF"
+      # on / off (-s for silent)
+      else if arg 2 is "on":
+        if arg 3 is "-s":
+          set {munchkits.user.%player%.sb.toggle} to true
+          make player execute command "/munchscore refresh"
+        else:
+          set {munchkits.user.%player%.sb.toggle} to true
+          make player execute command "/munchscore refresh"
+          send "{@prefix} &7Scoreboard toggled &aON"
+      else if arg 2 is "off":
+        if arg 3 is "-s":
+          delete {munchkits.user.%player%.sb.toggle}
+          wipe player sidebar
+        else:
+          delete {munchkits.user.%player%.sb.toggle}
+          wipe player sidebar
+          send "{@prefix} &7Scoreboard toggled &cOFF"
+
+# Staff Chat
+command /sc [<text>]:
+  aliases: staffchat
+  permission: munchkits.admin
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      # Toggles staff chat
+      if {munchkits.user.%player%.staffchat} is true:
+        delete {munchkits.user.%player%.staffchat}
+        send "{@prefix} &7Staff Chat: &cDisabled"
+        if {munchkits.user.%player%.staff} is set:
+          make player execute command "/munchscore refresh"
+      else:
+        set {munchkits.user.%player%.staffchat} to true
+        send "{@prefix} &7Staff Chat: &aEnabled"
+        if {munchkits.user.%player%.staff} is set:
+          make player execute command "/munchscore refresh"
+    # Loops players with message
+    else:
+      loop all players:
+        loop-player has the permission "staff.admin.chat":
+          message "&9[S] &7%player%> &c%argument%" to loop-player
+
+on chat:
+  if {munchkits.user.%player%.staffchat} is true:
+    cancel event
+    make player execute command "/sc %message%"
+  player has the permission "munchykits.admin":
+    if {staff.chat.toggle.%player%} is false:
+      message contains "~"
+      set {_message} to message
+      cancel event
+      replace all "~" in {_message} with ""
+      make player execute command "/sc %{_message}%"
+
+# Options
+on click holding nether star:
+  if {munchkits.user.%player%.edit} is not set:
+    wait 1 ticks
+    make player execute command "/options"
+
+command /options [<text>]:
+  trigger:
+    if arg 1 is not set:
+      open chest with 2 rows named "&aOptions" to player
+      # Duel Requests
+      format slot 1 of player with beacon named "&aDuel Item" to be unstealable
+      if {munchkits.user.%player%.duelitem} is not set:
+        format slot 10 of player with red stained glass named "&aEnable duel item" to run [make player execute command "/options duels"]
+      else:
+        format slot 10 of player with green stained glass named "&cDisable duel item" to run [make player execute command "/options duels"]
+
+      # Competitive
+      format slot 4 of player with ender portal frame named "&aCompetitive Item" to be unstealable
+      if {munchkits.user.%player%.compitem} is not set:
+        format slot 13 of player with red stained glass named "&aEnable comp item" to run [make player execute command "/options comp"]
+      else:
+        format slot 13 of player with green stained glass named "&cDisable comp item" to run [make player execute command "/options comp"]
+      # Scoreboard
+      format slot 7 of player with name tag named "&a Scoreboard toggle" to be unstealable
+      if {munchkits.user.%player%.sb.toggle} is not set:
+        format slot 16 of player with red stained glass named "&aEnable scoreboard" to run [make player execute command "/options score"]
+      else:
+        format slot 16 of player with green stained glass named "&cDisable scoreboard" to run [make player execute command "/options score"]
+
+    # duel
+    else if arg 1 is "duels":
+      if {munchkits.user.%player%.duelitem} is not set:
+        set {munchkits.user.%player%.duelitem} to true
+        format slot 10 of player with green stained glass named "&cDisable duel item" to run [make player execute command "/options duels"]
+      else:
+        delete {munchkits.user.%player%.duelitem}
+        format slot 10 of player with red stained glass named "&aEnable duel item" to run [make player execute command "/options duels"]
+    # comp
+    else if arg 1 is "comp":
+      if {munchkits.user.%player%.compitem} is not set:
+        set {munchkits.user.%player%.compitem} to true
+        format slot 13 of player with green stained glass named "&cDisable comp item" to run [make player execute command "/options comp"]
+      else:
+        delete {munchkits.user.%player%.compitem}
+        format slot 13 of player with red stained glass named "&aEnable comp item" to run [make player execute command "/options comp"]
+    else if arg 1 is "score":
+      if {munchkits.user.%player%.sb.toggle} is not set:
+        make player execute command "/munchscore toggle on -s"
+        format slot 16 of player with green stained glass named "&cDisable scoreboard" to run [make player execute command "/options score"]
+      else:
+        make player execute command "/munchscore toggle off -s"
+        format slot 16 of player with red stained glass named "&aEnable scoreboard" to run [make player execute command "/options score"]
+
+# ## ---[ Spawn Protection ]--- ###
+# SpawnProt Removal
+on respawn:
+  delete {munchkits.user.%player%.spawnprot}
+
+# SpawnProt Added
+on region exit:
+  if "%region at player%" contains "Spawn":
+    if {munchkits.user.%player%.spawnprot} is not set:
+      send "&aSpawn protection removed."
+      set {munchkits.user.%player%.spawnprot} to true
+
+# SpawnProt Damage Removal
+on damage:
+  if {munchkits.user.%victim%.spawnprot} is not set:
+    send "&c%victim% &7Still has spawn protection!" to attacker
+    cancel event
+
+# ## ---[ Kits ]--- ###
+
+on click with chest:
+  name of player's tool is "&aKit Selector":
+    make player execute command "/kit"
+
+command /kit [<text>]:
+  trigger:
+    if arg 1 is not set:
+      open chest with 3 rows named "&aKit Selector" to player
+    else if arg 1 is "pvp":
+      if {munchkits.user.%player%.healtype} is 1:
+        loop 36 times:
+          set slot {_count} of player's inventory to potion of healing
+          add 1 to {_count}
+      else:
+        loop 36 times:
+          set slot {_count} of player's inventory to mushroom stew
+          add 1 to {_count}
+      set slot 0 of player's inventory to diamond sword
+    else if arg 1 is "pvp":
+      if {munchkits.user.%player%.healtype} is 1:
+        loop 36 times:
+          set slot {_count} of player's inventory to potion of healing
+          add 1 to {_count}
+      else:
+        loop 36 times:
+          set slot {_count} of player's inventory to mushroom stew
+          add 1 to {_count}
+      set slot 0 of player's inventory to diamond sword
+
+# ## ---[ MunchEvents Intergration ]--- ###
+
+on load:
+  if folder "plugins/Munchkits" doesn't exists:
+    create folder "plugins/Munchkits"
+    send "&7[&6MunchKits&7] Munchkits folder not found! Creating." to console
+  if folder "plugins/Munchkits/addons" doesn't exists:
+    create folder "plugins/Munchkits/addons"
+    send "&7[&6MunchKits&7] Addons folder not found! Creating." to console
+  if file "plugins/Munchkits/addons/MunchEvents.sk" exists:
+    send "&7[&6MunchKits&7] MunchEvents found! Intergrating (Kappa)." to console
+  if file "plugins/Munchkits/addons/MunchWave.munch" exists:
+    send "&7[&6MunchKits&7] MunchWave found! Ready to create a ban tsunami." to console
+  if {munchkits.main.reload} is set:
+    if {munchkits.main.reload.v} is set:
+      set {_time} to difference between {munchkits.main.reload.v} and now
+      send "{@prefix} &7Reloaded. &8Reload took %{_time}%" to {munchkits.main.reload}
+      delete {munchkits.main.reload.v}
+    else:
+      send "{@prefix} &7Reloaded." to {munchkits.main.reload}
+    delete {munchkits.main.reload}
+
+# Clears Drops // Modifys stats
+on death:
+  clear drops
+  add 1 to {deaths::%player%}
+  add 1 to {kills::%attacker%}
+  make attacker execute command "/munchscore refresh"
+  make player execute command "/munchscore refresh"
+
+# Edit Mode Cancels
+# Cancel pickup
+on pickup:
+  if {munchkits.user.%player%.edit} is not set:
+    cancel event
+# Cancels breaking stuff
+on break:
+  if {munchkits.user.%player%.edit} is not set:
+    cancel event
+# Cancels placing stuff
+on place:
+  if {munchkits.user.%player%.edit} is not set:
+    cancel event
+# Keeps hunger at max
+on hunger meter change:
+  cancel event
+
+# ## ---[ Staff ]--- ###
+
+# Clear Inventory - Clears the players inventory can also clear others with "munchkits.clearinventory.other"
+command /ci [<player>]:
+  aliases: clear
+  permission: munchkits.clearinventory
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is set:
+      if player has the permission "munchkits.clearinventory.other":
+        clear arg-1's inventory
+        send "{@prefix} &7Cleared &c%arg 1%&7's inventory."
+      else:
+        send "{@noperm}"
+    else:
+      clear player's inventory
+      send "{@prefix} &7Cleared your inventory."
+
+# General admin.
+command /admin [<text>]:
+  permission: munchkits.admin
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      # Help Menu for staff
+      send "&8--------------[ &aMunchKits Staff &aHelp &7(1/1) &8]--------------"
+      send "&7/Admin &8| &cShows this help menu."
+      send "&7/Admin mode &8| &cPuts you in admin mode."
+      send "&7/Admin reports &8| &cToggles reports on / off."
+      send "&7/Admin alerts &8| &cToggles staff alerts (Useful for recording)."
+    # Staff Mode
+    else if arg 1 is "mode":
+      if {munchkits.user.%player%.staff} is not set:
+        send "{@prefix} &7Staff mode &aEnabled"
+        set {munchkits.user.%player%.staff} to true
+        make player execute command "/munchscore refresh"
+        set {_count} to 0
+        wait 1 tick
+        loop 36 times:
+          set {main.%uuid of player%.%{_count}%} to slot {_count} of player's inventory
+          add 1 to {_count}
+        wait 1 tick
+        set {inv.helm.%uuid of player%} to player's helmet
+        set {inv.chest.%uuid of player%} to player's chestplate
+        set {inv.legs.%uuid of player%} to player's leggings
+        set {inv.boots.%uuid of player%} to player's boots
+        clear player's inventory
+        if {munchkits.user.%player%.vanish} is not set:
+          make player execute command "/vanish"
+        if {munchkits.user.%player%.fly} is not set:
+          make player execute command "/fly"
+        set slot 0 of player's inventory to feather named "&eFly &8(&aEnabled&8)"
+        set slot 1 of player's inventory to light green dye named "&eVanish &8(&aEnabled&8)"
+        set slot 6 of player's inventory to orange carpet named "&eBetter Looking &8(&e1.7&8)"
+        set slot 7 of player's inventory to enchanted book named "&ePlayer list"
+        set slot 8 of player's inventory to book named "&eInspect Player"
+      else:
+        send "{@prefix} &7Staff mode &cDisabled"
+        delete {munchkits.user.%player%.staff}
+        if {munchkits.user.%player%.vanish} is set:
+          make player execute command "/vanish"
+        if {munchkits.user.%player%.fly} is set:
+          make player execute command "/fly"
+        make player execute command "/munchscore refresh"
+        set {_count} to 0
+        wait 1 tick
+        loop 36 times:
+          set slot {_count} of player's inventory to {main.%uuid of player%.%{_count}%}
+          add 1 to {_count}
+        set the helmet of player to {inv.helm.%uuid of player%}
+        set the chestplate of player to {inv.chest.%uuid of player%}
+        set the leggings of player to {inv.legs.%uuid of player%}
+        set the boots of player to {inv.boots.%uuid of player%}
+    else if arg 1 is "reports":
+      if {munchkits.user.%player%.staff.reports} is not set:
+        send "{@prefix} &7Reports &aEnabled&7."
+        set {munchkits.user.%player%.staff.reports} to true
+      else:
+        send "{@prefix} &7Reports &cDisabled&7."
+        delete {munchkits.user.%player%.staff.reports}
+    else if arg 1 is "alerts":
+      if {munchkits.user.%player%.staff.reports} is not set:
+        send "{@prefix} &7Alerts &aEnabled&7."
+        set {munchkits.user.%player%.staff.alerts} to true
+      else:
+        send "{@prefix} &7Alerts &cDisabled&7."
+        delete {munchkits.user.%player%.staff.alerts}
+
+# Fly Item Toggle
+on click holding feather:
+  if {munchkits.user.%player%.staff} is set:
+    if {munchykits.user.%player%.fly} is true:
+      wait 5 ticks
+      make player execute command "/fly"
+      make player execute command "/munchscore refresh"
+      set slot 0 of player's inventory to feather named "&eFly &8(&cDisabled&8)"
+    else:
+      wait 5 ticks
+      make player execute command "/fly"
+      make player execute command "/munchscore refresh"
+      set slot 0 of player's inventory to feather named "&eFly &8(&aEnabled&8)"
+
+# Vanish Item Toggle
+on click holding light green dye:
+  if {munchkits.user.%player%.staff} is set:
+    wait 5 ticks
+    make player execute command "/vanish"
+    make player execute command "/munchscore refresh"
+    set slot 1 of player's inventory to gray dye named "&cVanish &8(&cDisabled&8)"
+
+on click holding gray dye:
+  if {munchkits.user.%player%.staff} is set:
+    wait 5 ticks
+    make player execute command "/vanish"
+    make player execute command "/munchscore refresh"
+    set slot 1 of player's inventory to light green dye named "&cVanish &8(&aEnabled&8)"
+
+# Vanish Main
+command /vanish:
+  permission: staff.admin.vanish
+  permission message: &9Permissions> &7Sorry but you do not have the permission &c'staff.admin.vanish'&7.
+  trigger:
+    if {munchkits.user.%player%.vanish} is true:
+      delete {munchkits.user.%player%.vanish}
+      reveal player to all players
+      send "{@prefix} &7You are now &cvisible&7."
+      if {munchkits.user.%player%.staff} is set:
+        make player execute command "/munchscore refresh"
+    else if {munchkits.user.%player%.vanish} is not set:
+      set {munchkits.user.%player%.vanish} to true
+      hide player from all players
+      send "{@prefix} &7You are now &ainvisible&7."
+      if {munchkits.user.%player%.staff} is set:
+        make player execute command "/munchscore refresh"
+
+# Flight Toggle
+command /fly [<player>]:
+  aliases: flight
+  permission: munchkits.fly
+  permission message: {@noperm}
+  trigger:
+    if {munchkits.user.%player%.fly} is not set:
+      set {munchkits.user.%player%.fly} to true
+      set player's fly mode to true
+      send "{@prefix} &7Flight mode &aEnabled"
+    else:
+      delete {munchkits.user.%player%.fly}
+      set player's fly mode to false
+      send "{@prefix} &7Flight mode &cDisabled"
+
+# Flight Disable on quit
+on quit:
+  if {munchkits.user.%player%.fly} is set:
+    delete {munchkits.user.%player%.fly}
+
+# Scoreboard update on GM change
+on gamemode change to survival:
+  set {munchkits.user.%player%.gamemode} to 0
+  if {munchkits.user.%player%.staff} is set:
+    make player execute command "/munchscore refresh"
+
+on gamemode change to creative:
+  set {munchkits.user.%player%.gamemode} to 1
+  if {munchkits.user.%player%.staff} is set:
+    make player execute command "/munchscore refresh"
+
+# Player Info - Shows info of player. - Eg: Currently banned?, Playtime ## NOT FINISHED
+command /info [<player>]:
+  permission: munchkits.admin.info
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "{@prefix} &7ERROR: You need to specify a player."
+      stop
+    open chest with 3 rows named "&c%arg 1%&7's info." to player
+    if {munchykits.punishments.ban.%arg 1%} is not set:
+      format slot 10 of player with red dye named "Currently banned?" with lore "&aNo." to be unstealable
+    else:
+      format slot 10 of player with red dye named "Currently banned?" with lore "&cYes." to be unstealable
+
+# Warp - Warp to a certain area.
+command /warp [<text>]:
+  permission: munchkits.clearinventory
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "{@prefix} &7Usage: /warp <warp>"
+      send "&7&oWarps: Casual, Comp, 1v1"
+    else if arg 1 is "casual":
+      if {munchkits.main.warps.mainspawn} is not set:
+        send "{@prefix} &7ERROR: Warp &cCasual &7is not set!"
+      else:
+        teleport player to {munchkits.main.warps.mainspawn}
+        send "{@prefix} &7Teleported!"
+    else if arg 1 is "comp":
+      if {munchkits.main.warps.comp} is not set:
+        send "{@prefix} &7ERROR: Warp &cComp &7is not set!"
+      else:
+        teleport player to {munchkits.main.warps.comp}
+        send "{@prefix} &7Teleported!"
+    else if arg 1 is "1v1":
+      if {munchkits.main.warps.1v1} is not set:
+        send "{@prefix} &7ERROR: Warp &c1v1 &7is not set!"
+      else:
+        teleport player to {munchkits.main.warps.1v1}
+        send "{@prefix} &7Teleported!"
+
+# Give item
+command /i <item> [<integer>]:
+  aliases: /item
+  permission: munchkits.give
+  permission message: {@noperm}
+  trigger:
+    if player doesn't have space for argument 1:
+      message "{@prefix} &7Your inventory is full."
+      stop
+    if argument 2 is not set:
+      message "{@prefix} &7Given '&c%argument 1%&7' to &c%player%&7 successfully."
+      give argument 1 to player
+      stop
+    message "{@prefix} &7Given &c%arg 2%&7 '&c%argument 1%&7' to &c%player%&7 successfully."
+    loop argument 2 times:
+      give argument 1 to player
+      if player doesn't have space for argument 1:
+        message "{@prefix} &7Your inventory is full."
+        stop
+
+# Gamemode
+command /gamemode [<text>] [<player>]:
+  aliases: gm
+  permission: munchkits.gamemode
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      if player has the permission "munchkits.gamemode.other":
+        send "{@prefix} &7Usage: /gamemode <gamemode> [<player>]"
+      else:
+        send "{@prefix} &7Usage: /gamemode <gamemode>"
+    else if arg 2 is set:
+      if player has the permission "munchkits.gamemode.other":
+        if arg 1 is "creative" or "c":
+          set arg 2's gamemode to creative
+          send "{@prefix} &7Set &c%arg 2%&7's gamemode to &cCreative&7."
+          send "{@prefix} &7Your gamemode has been set to &cCreative &7by '&c%player%&7'." to arg 2
+        else if arg 1 is "survial" or "s":
+          set arg 2's gamemode to survival
+          send "{@prefix} &7Set &c%arg 2%&7's gamemode to &cSurvival&7."
+          send "{@prefix} &7Your gamemode has been set to &cSurvival &7by '&c%player%&7'." to arg 2
+    else:
+      if arg 1 is "creative" or "c":
+        set player's gamemode to creative
+        send "{@prefix} &7Set &c%player%&7's gamemode to &cCreative&7."
+      else if arg 1 is "survival" or "s":
+        set player's gamemode to survival
+        send "{@prefix} &7Set &c%player%&7's gamemode to &cSurvival&7."
+
+# # Stats Management
+# Useful for higher staff on reset.
+
+command /astats [<text>] [<player>]:
+  permission: munchykits.admin
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "&8---------------[ &aMunchKits Stats&8 &aHelp &7(1/1) &8]---------------"
+      send "&7/astats reset (player) &8| &cResets a players stats."
+      send "&7/astats resetall &8| &cResets all stats"
+    else if arg 1 is "reset":
+      if arg 2 is not set:
+        send "{@prefix} &7No player specified!"
+      else:
+        send "{@prefix} &7Reset &c%arg 2%&7's stats successfully."
+        set {deaths::%arg 2%} to 0
+        set {kills::%arg 2%} to 0
+    else if arg 1 is "resetall":
+      send "{@prefix} &7Reset everyones stats successfully."
+      set {deaths::*} to 0
+      set {kills::*} to 0
+
+# Higher staff settings - world settings - Time moves etc. // First time setup
+# Main Admin
+command /akit [<text>] [<text>] [<text>]:
+  permission: munchkits.admin.config
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "&8--------------[ &aMunchKits Admin &aHelp &7(1/1) &8]--------------"
+      send "&7/akit setwarp (warp) &8| &cSets a warp. Do not write a warp for a list."
+      send "&7/akit edit &8| &cEnables/Disables edit mode."
+      send "&7/akit setnpc (npc) &8| &cSets a NPC location. Do not write an NPC for a list."
+      send "&7/akit block (command) &8| &cBlocks a command. Do not write a command for a list."
+      send "&7/akit reload [(-v)] &8| &cReloads MunchKits"
+    # NPC's
+    else if arg 1 is "setnpc":
+      if arg 2 is not set:
+        # NPC List
+        send "&a=== Availible NPC's ==="
+        if {munchkits.main.npc.shop} is set:
+          send "&aShop &8(&aSet&8)"
+        else:
+          send "&aShop &8(&cNot Set&8)"
+      # Shop NPC
+      else if arg 2 is "shop":
+        if {munchkits.main.npc.shop} is not set:
+          set {munchkits.main.npc.shop} to true
+          create a citizen named "&aShop" at location of player
+          wait 1 ticks
+          give npc 0 the look close trait
+        else:
+          despawn citizen 0
+          wait 1 ticks
+          create a citizen named "&aShop" at location of player
+          wait 1 ticks
+          give npc 0 the look close trait
+    # Warps
+    else if arg 1 is "setwarp":
+      if arg 2 is not set:
+        # Warps List
+        send "&a=== Availible Warps ==="
+        # Casual
+        if {munchkits.main.warps.mainspawn} is set:
+          send "&aCasual &8(&aSet&8)"
+        else:
+          send "&aCasual &8(&cNot Set&8)"
+        # Comp
+        if {munchkits.main.warps.comp} is set:
+          send "&aComp &8(&aSet&8)"
+        else:
+          send "&aComp &8(&cNot Set&8)"
+        # 1v1
+        if {munchkits.main.warps.1v1} is set:
+          send "&a1v1 &8(&aSet&8)"
+        else:
+          send "&a1v1 &8(&cNot Set&8)"
+      # Causal Set
+      else if arg 2 is "Casual":
+        set {munchkits.main.warps.mainspawn} to location of player
+        send "{@prefix} &7Location of '&cCasual&7' set. "
+      # Comp Set
+      else if arg 2 is "Comp":
+        set {munchkits.main.warps.comp} to location of player
+        send "{@prefix} &7Location of '&cComp&7' set. "
+      # 1v1 set
+      else if arg 2 is "1v1":
+        set {munchkits.main.warps.1v1} to location of player
+        send "{@prefix} &7Location of '&c1v1&7' set. "
+    # Edit Mode
+    else if arg 1 is "edit":
+      if {munchkits.user.%player%.edit} is not set:
+        set {munchkits.user.%player%.edit} to true
+        send "{@prefix} &7Edit mode &aEnabled&7."
+      else:
+        delete {munchkits.user.%player%.edit}
+        send "{@prefix} &7Edit mode &cDisabled&7."
+    # Command Blocker
+    else if arg 1 is "block":
+      if arg 2 is not set:
+        send "{@prefix} &7Blocked Commands: %{blockedcommands::*}%"
+      else:
+        if {blockedcommands::*} contains "%arg-2%":
+          remove "%arg-2%" from {blockedcommands::*}
+          send "{@prefix} &7Blocked command '&c%arg 2%&7' removed."
+        else:
+          add "%arg-2%" to {blockedcommands::*}
+          send "{@prefix} &7Command '&c%arg 2%&7' added to the block list."
+    # Reload
+    else if arg 1 is "reload":
+      # -v for verbose
+      if arg 2 is "-v":
+        set {munchkits.main.reload} to player
+        set {munchkits.main.reload.v} to now
+        send "{@prefix} &7Reloading..."
+        make player execute command "/skript reload munchkits"
+      else:
+        set {munchkits.main.reload} to player
+        send "{@prefix} &7Reloading..."
+        make console execute command "/skript reload munchkits"
+
+on command:
+    loop {blockedcommands::*}:
+        if command is loop-value:
+            cancel event
+            send "Unknown command. Type ""/help"" for help."
+            stop loop
+
+# Coins Management
+command /acoins [<text>] [<player>] [<number>]:
+  permission: munchkits.admin
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "&8----------------[ &aMunchKits Eco&8 &aHelp &7(1/1) &8]----------------"
+      send "&7/acoins set (player) (amount) &8| &cSets a players balace to a specific amount."
+      send "&7/acoins add (player) (amount) &8| &cAdds a set amount of coins"
+      send "&7/acoins remove (player) (amount) &8| &cRemoves a set amount of coins."
+      send "&7/acoins reset (player) &7| &cResets the amount of coins a player has."
+      send "&7/acoins resetall &7| &cResets everyones balance."
+    else if arg 1 is "set":
+      if arg 2 is not set:
+        send "{@prefix} &7No player was specified!"
+        stop
+      if arg 3 is not set:
+        send "{@prefix} &7No amount was specified!"
+        stop
+      if arg 3 is less than 0:
+        send "{@prefix} &7You cannot set a players balance to less than 0!"
+      else:
+        send "{@prefix} &7Successfully set &c%arg 2%&7's balance to &c%arg 3% &7Coins!"
+        set {balance::%arg 2%} to arg 3
+        if arg 2 is online:
+          make arg 2 execute command "/munchscore refresh"
+
+    else if arg 1 is "add":
+      if arg 2 is not set:
+        send "{@prefix} &7No player was specified!"
+        stop
+      if arg 3 is not set:
+        send "{@prefix} &7No amount was specified!"
+        stop
+      if arg 3 is less than 0:
+        send "{@prefix} &7You cannot add negatives to a players balance!"
+        stop
+      else:
+        add arg 3 to {balance::%arg 2%}
+        send "{@prefix} &7Successfully added &c%arg 3%&7 Coins to &c%arg 2%&7's balance. Which is now &c%{balance::%arg 2%}%&7 Coins."
+        if arg 2 is online:
+          make arg 2 execute command "/munchscore refresh"
+
+    else if arg 1 is "remove":
+      if arg 2 is not set:
+        send "{@prefix} &7No player was specified!"
+        stop
+      if arg 3 is not set:
+        send "{@prefix} &7No amount was specified!"
+        stop
+      if arg 3 is less than 0:
+        send "{@prefix} &7You cannot deduct negatives from a players balance!"
+        stop
+      else:
+        subtract arg 3 from {balance::%arg 2%}
+        send "{@prefix} &7Successfully removed &c%arg 3%&7 Coins from &c%arg 2%&7's balance. Which is now &c%{balance::%arg 2%}%&7 Coins."
+        if arg 2 is online:
+          make arg 2 execute command "/munchscore refresh"
+    else if arg 1 is "reset":
+      if arg 2 is not set:
+        send "{@prefix} &7No player was specified!"
+        stop
+      else:
+        delete {balance::%arg 2%}
+        send "{@prefix} &7Successfully reset &c%arg 2%&7's balance."
+    else if arg 1 is "resetall":
+      delete {balance::*}
+      send "{@prefix} &7Reset everyones balance successfully!"
+
+# Disables Edit mode on quit
+on quit:
+  if {munchkits.user.%player%.edit} is set:
+    delete {munchkits.user.%player%.edit}
+
+command /aoptions [<text>] [<text>]:
+  permission: munchkits.admin.config
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "&aDo /aoptions <option> <true/false>"
+      if {munchkits.main.settings.weather} is not set:
+        send "&aWeather &8(&cEnabled&8)"
+      else:
+        send "&aWeather &8(&aDisabled&8)"
+      if {munchkits.main.settings.daycycle} is not set:
+        send "&aDayCycle &8(&cEnabled&8)"
+      else:
+        send "&aDayCycle &8(&aDisabled&8)"
+      stop
+
+at 18:00:
+  if {munchkits.main.settings.daycycle} is not set:
+    set time to 7:00
+
+# Ranks
+on join:
+  if player has the permission "ranks.owner":
+    set player tab name to "&c&l%player%"
+
+# # Dev Notes
+
+# Google Docs Link - https://docs.google.com/document/d/1GaHerbh0Wh4ciNcw-jf6TxDzumgsMBUW3G3gjPMqGeY/edit#
+
+# Variables - Variables all follow the same pattern {munchkits.%type%}
+# there are three variables; main - This is for world settings etc, user - This stores user preferences. and a few lists for balances, kills, deaths // General Stats
