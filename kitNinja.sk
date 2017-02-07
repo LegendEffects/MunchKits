@@ -1,0 +1,27 @@
+command /ninja:
+  trigger:
+    set {testkits.user.%uuid of player%.kit} to 1
+    loop 36 times:
+      set slot {_count} of player's inventory to mushroom stew
+      add 1 to {_count}
+    set slot 0 of player's inventory to diamond sword
+    set slot 1 of player's inventory to gray dye
+
+on right click with gray dye:
+  if {testkits.user.%uuid of player%.kit} is 1:
+    if difference between {_lastuse} and now is smaller than 15 seconds:
+      send "&CStill on cooldown"
+    else:
+      set slot 1 of player's inventory to light green dye
+      send "&cYou are now invis"
+      set {_lastuse} to now
+      set the player's level to 15
+      apply invisibility to player
+      loop 5 times:
+        wait 1 seconds
+        reduce the player's level by 1
+      remove invisibility from the player
+      loop 10 times:
+        wait 1 seconds
+        reduce the player's level by 1
+      set slot 1 of player's inventory to gray dye

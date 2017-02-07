@@ -1,2 +1,2 @@
-#Addons
-Addons can be installed in plugins/Munchkits/addons/<AddonName>.munch
+# Kit Dev
+This section is for kits to be developed, tested and then added to the main section.
