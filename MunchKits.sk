@@ -12,7 +12,7 @@ options:
   UnBanBroadcast: &a%arg 1% has been unbanned by %player%
 
 on quit:
-  delete {munchykits.user.%player%.flight}
+  delete {munchykits.user.%uuid of player%.flight}
 
 # ## ---[ Punishments ]--- ###
 
@@ -60,9 +60,9 @@ command /unmute [<player>]:
       send "{@prefix} &7Player &c%arg 1%&7 is currently not muted."
 
 on chat:
-  if {munchykits.punishments.mute.%player%} is set:
+  if {munchykits.punishments.mute.%uuid of player%} is set:
     cancel event
-    send "&cYou are currently muted for '&c%{munchykits.punishments.mute.%player%.reason}%'."
+    send "&cYou are currently muted for '&c%{munchykits.punishments.mute.%uuid of player%.reason}%'."
     stop
 
 # Bans
@@ -142,7 +142,7 @@ command /report [<player>] [<text>]:
 
 # Soup Heal
 on click with mushroom stew:
-  if {munchkits.user.%player%.spawnprot} is set:
+  if {munchkits.user.%uuid of player%.spawnprot} is set:
     if player's health is not equal to player's max health:
       cancel event
       heal the player by 3.5 hearts
@@ -152,20 +152,20 @@ on click with mushroom stew:
 # # Player General Setup
 # First Join Player Setup.
 on first join:
-  set {munchkits.user.%player%.firstjoin} to now
-  if {munchkits.user.%player%.duelitem} is not set:
-    set {munchkits.user.%player%.duelitem} to true
-  if {munchkits.user.%player%.compitem} is not set:
-    set {munchkits.user.%player%.duelitem} to true
+  set {munchkits.user.%uuid of player%.firstjoin} to now
+  if {munchkits.user.%uuid of player%.duelitem} is not set:
+    set {munchkits.user.%uuid of player%.duelitem} to true
+  if {munchkits.user.%uuid of player%.compitem} is not set:
+    set {munchkits.user.%uuid of player%.duelitem} to true
 
 # Every join setup
 on join:
-  if {kills::%player%} is not set:
-    set {kills::%player%} to 0
-  if {deaths::%player%} is not set:
-    set {deaths::%player%} to 0
-  if {balance::%player%} is not set:
-    set {balance::%player%} to 0
+  if {kills::%uuid of player%} is not set:
+    set {kills::%uuid of player%} to 0
+  if {deaths::%uuid of player%} is not set:
+    set {deaths::%uuid of player%} to 0
+  if {balance::%uuid of player%} is not set:
+    set {balance::%uuid of player%} to 0
   if {munchkits.main.warps.mainspawn} is not set:
     send "{@CasualNotSet}"
   else:
@@ -173,7 +173,7 @@ on join:
     teleport player to {munchkits.main.warps.mainspawn}
     send "{@JoinMessage}"
     # Scoreboard check
-    if {munchkits.user.%player%.sb.toggle} is set:
+    if {munchkits.user.%uuid of player%.sb.toggle} is set:
       make player execute command "/munchscore refresh"
     # Inv setup
     clear player's inventory
@@ -181,14 +181,14 @@ on join:
     set slot 0 of player's inventory to chest named "&aKit Selector"
     set slot 8 of player's inventory to nether star named "&aOptions"
     # checking if heal type is soup or pots
-    if {munchkits.user.%player%.healtype} is 1:
+    if {munchkits.user.%uuid of player%.healtype} is 1:
       set slot 3 of player's inventory to potion of healing named "&aHealType: Pot"
     else:
       set slot 3 of player's inventory to mushroom stew named "&aHealType: Soup"
     # Checks user settings if comp // duel item are enabled
-    if {munchkits.user.%player%.compitem} is set:
+    if {munchkits.user.%uuid of player%.compitem} is set:
       set slot 6 of player's inventory to iron chestplate named "&aCompetitive"
-    if {munchkits.user.%player%.duelitem} is set:
+    if {munchkits.user.%uuid of player%.duelitem} is set:
       set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
 
 # Player Stats
@@ -196,10 +196,10 @@ command /stats [<player>]:
   trigger:
     if arg 1 is not set:
       send "&7Your current stats:"
-      send "&aBalance: %{balance::%player%}%"
+      send "&aBalance: %{balance::%uuid of player%}%"
       send "&7------------------------"
-      send "&aKills: %{kills::%player%}%"
-      send "&cDeaths: %{deaths::%player%}%"
+      send "&aKills: %{kills::%uuid of player%}%"
+      send "&cDeaths: %{deaths::%uuid of player%}%"
 
 
 # Spawn
@@ -207,16 +207,19 @@ command /spawn:
   trigger:
     send "&aPlease stand still for 5 seconds"
     clear player's inventory
+    delete {munchkits.user.%uuid of player%.kitselect}
+    remove resistance from the player
+    remove swiftness from the player
     teleport player to {munchkits.main.warps.mainspawn}
     set slot 0 of player's inventory to chest named "&aKit Selector"
     set slot 8 of player's inventory to nether star named "&aOptions"
-    if {munchkits.user.%player%.healtype} is 1:
+    if {munchkits.user.%uuid of player%.healtype} is 1:
       set slot 3 of player's inventory to potion of healing named "&aHealType: Pot"
     else:
       set slot 3 of player's inventory to mushroom stew named "&aHealType: Soup"
-    if {munchkits.user.%player%.compitem} is set:
+    if {munchkits.user.%uuid of player%.compitem} is set:
       set slot 6 of player's inventory to iron chestplate named "&aCompetitive"
-    if {munchkits.user.%player%.duelitem} is set:
+    if {munchkits.user.%uuid of player%.duelitem} is set:
       set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
 
 
@@ -225,36 +228,36 @@ command /munchscore [<text>] [<text>] [<text>]:
   trigger:
     if arg 1 is "refresh":
       # Checks if scoreboard is enabled and refreshes
-      if {munchkits.user.%player%.sb.toggle} is set:
+      if {munchkits.user.%uuid of player%.sb.toggle} is set:
         wipe player sidebar
         set name of sidebar of player to " "
         set name of sidebar of player to "&c&lKITPVP"
         set score "&7Player &c%player%&7:" in sidebar of player to 5
-        set score "&6  » &eCoins: &c%{balance::%player%}%" in sidebar of player to 4
-        set score "&6  » &eKills: &c%{kills::%player%}%" in sidebar of player to 3
-        set score "&6  » &eDeaths: &c%{deaths::%player%}%" in sidebar of player to 2
+        set score "&6  » &eCoins: &c%{balance::%uuid of player%}%" in sidebar of player to 4
+        set score "&6  » &eKills: &c%{kills::%uuid of player%}%" in sidebar of player to 3
+        set score "&6  » &eDeaths: &c%{deaths::%uuid of player%}%" in sidebar of player to 2
         set score "" in sidebar of player to 1
         set score "&8---[CrunchyMC.com]---" in sidebar of player to 0
       # Checks if user is in staff
-      if {munchkits.user.%player%.staff} is set:
+      if {munchkits.user.%uuid of player%.staff} is set:
         wipe player sidebar
         set name of sidebar of player to " "
         set name of sidebar of player to "&c&lKITPVP"
         set score "&7Player &c%player%&7:" in sidebar of player to 10
-        set score "&6  » &eCoins: &c%{balance::%player%}%" in sidebar of player to 9
-        set score "&6  » &eKills: &c%{kills::%player%}%" in sidebar of player to 8
-        set score "&6  » &eDeaths: &c%{deaths::%player%}%" in sidebar of player to 7
+        set score "&6  » &eCoins: &c%{balance::%uuid of player%}%" in sidebar of player to 9
+        set score "&6  » &eKills: &c%{kills::%uuid of player%}%" in sidebar of player to 8
+        set score "&6  » &eDeaths: &c%{deaths::%uuid of player%}%" in sidebar of player to 7
         set score "&7" in sidebar of player to 6
         set score "&6&lStaff Mode&7&l:" in sidebar of player to 5
-        if {munchkits.user.%player%.vanish} is true:
+        if {munchkits.user.%uuid of player%.vanish} is true:
           set score "&6  » &eVanish: &aTrue" in sidebar of player to 4
         else:
           set score "&6  » &eVanish: &cFalse" in sidebar of player to 4
-        if {munchkits.user.%player%.gamemode} is 1:
+        if {munchkits.user.%uuid of player%.gamemode} is 1:
           set score "&6  » &eGamemode: &aCreative" in sidebar of player to 3
         else:
           set score "&6  » &eGamemode: &cSurvival" in sidebar of player to 3
-        if {munchkits.user.%player%.staffchat} is true:
+        if {munchkits.user.%uuid of player%.staffchat} is true:
           set score "&6  » &eStaff Chat: &aTrue" in sidebar of player to 2
         else:
           set score "&6  » &eStaff Chat: &cFalse" in sidebar of player to 2
@@ -263,29 +266,29 @@ command /munchscore [<text>] [<text>] [<text>]:
     # Scoreboard toggle
     else if arg 1 is "toggle":
       if arg 2 is not set:
-        if {munchkits.user.%player%.sb.toggle} is not set:
-          set {munchkits.user.%player%.sb.toggle} to true
+        if {munchkits.user.%uuid of player%.sb.toggle} is not set:
+          set {munchkits.user.%uuid of player%.sb.toggle} to true
           send "&a{@prefix} &7Scoreboard toggled &aON"
           make player execute command "/munchscore refresh"
         else:
-          delete {munchkits.user.%player%.sb.toggle}
+          delete {munchkits.user.%uuid of player%.sb.toggle}
           wipe player sidebar
           send "{@prefix} &7Scoreboard toggled &cOFF"
       # on / off (-s for silent)
       else if arg 2 is "on":
         if arg 3 is "-s":
-          set {munchkits.user.%player%.sb.toggle} to true
+          set {munchkits.user.%uuid of player%.sb.toggle} to true
           make player execute command "/munchscore refresh"
         else:
-          set {munchkits.user.%player%.sb.toggle} to true
+          set {munchkits.user.%uuid of player%.sb.toggle} to true
           make player execute command "/munchscore refresh"
           send "{@prefix} &7Scoreboard toggled &aON"
       else if arg 2 is "off":
         if arg 3 is "-s":
-          delete {munchkits.user.%player%.sb.toggle}
+          delete {munchkits.user.%uuid of player%.sb.toggle}
           wipe player sidebar
         else:
-          delete {munchkits.user.%player%.sb.toggle}
+          delete {munchkits.user.%uuid of player%.sb.toggle}
           wipe player sidebar
           send "{@prefix} &7Scoreboard toggled &cOFF"
 
@@ -297,15 +300,15 @@ command /sc [<text>]:
   trigger:
     if arg 1 is not set:
       # Toggles staff chat
-      if {munchkits.user.%player%.staffchat} is true:
-        delete {munchkits.user.%player%.staffchat}
+      if {munchkits.user.%uuid of player%.staffchat} is true:
+        delete {munchkits.user.%uuid of player%.staffchat}
         send "{@prefix} &7Staff Chat: &cDisabled"
-        if {munchkits.user.%player%.staff} is set:
+        if {munchkits.user.%uuid of player%.staff} is set:
           make player execute command "/munchscore refresh"
       else:
-        set {munchkits.user.%player%.staffchat} to true
+        set {munchkits.user.%uuid of player%.staffchat} to true
         send "{@prefix} &7Staff Chat: &aEnabled"
-        if {munchkits.user.%player%.staff} is set:
+        if {munchkits.user.%uuid of player%.staff} is set:
           make player execute command "/munchscore refresh"
     # Loops players with message
     else:
@@ -314,11 +317,11 @@ command /sc [<text>]:
           message "&9[S] &7%player%> &c%argument%" to loop-player
 
 on chat:
-  if {munchkits.user.%player%.staffchat} is true:
+  if {munchkits.user.%uuid of player%.staffchat} is true:
     cancel event
     make player execute command "/sc %message%"
   player has the permission "munchykits.admin":
-    if {staff.chat.toggle.%player%} is false:
+    if {staff.chat.toggle.%uuid of player%} is false:
       message contains "~"
       set {_message} to message
       cancel event
@@ -327,7 +330,7 @@ on chat:
 
 # Options
 on click holding nether star:
-  if {munchkits.user.%player%.edit} is not set:
+  if {munchkits.user.%uuid of player%.edit} is not set:
     wait 1 ticks
     make player execute command "/options"
 
@@ -337,42 +340,42 @@ command /options [<text>]:
       open chest with 2 rows named "&aOptions" to player
       # Duel Requests
       format slot 1 of player with beacon named "&aDuel Item" to be unstealable
-      if {munchkits.user.%player%.duelitem} is not set:
+      if {munchkits.user.%uuid of player%.duelitem} is not set:
         format slot 10 of player with red stained glass named "&aEnable duel item" to run [make player execute command "/options duels"]
       else:
         format slot 10 of player with green stained glass named "&cDisable duel item" to run [make player execute command "/options duels"]
 
       # Competitive
       format slot 4 of player with ender portal frame named "&aCompetitive Item" to be unstealable
-      if {munchkits.user.%player%.compitem} is not set:
+      if {munchkits.user.%uuid of player%.compitem} is not set:
         format slot 13 of player with red stained glass named "&aEnable comp item" to run [make player execute command "/options comp"]
       else:
         format slot 13 of player with green stained glass named "&cDisable comp item" to run [make player execute command "/options comp"]
       # Scoreboard
       format slot 7 of player with name tag named "&a Scoreboard toggle" to be unstealable
-      if {munchkits.user.%player%.sb.toggle} is not set:
+      if {munchkits.user.%uuid of player%.sb.toggle} is not set:
         format slot 16 of player with red stained glass named "&aEnable scoreboard" to run [make player execute command "/options score"]
       else:
         format slot 16 of player with green stained glass named "&cDisable scoreboard" to run [make player execute command "/options score"]
 
     # duel
     else if arg 1 is "duels":
-      if {munchkits.user.%player%.duelitem} is not set:
-        set {munchkits.user.%player%.duelitem} to true
+      if {munchkits.user.%uuid of player%.duelitem} is not set:
+        set {munchkits.user.%uuid of player%.duelitem} to true
         format slot 10 of player with green stained glass named "&cDisable duel item" to run [make player execute command "/options duels"]
       else:
-        delete {munchkits.user.%player%.duelitem}
+        delete {munchkits.user.%uuid of player%.duelitem}
         format slot 10 of player with red stained glass named "&aEnable duel item" to run [make player execute command "/options duels"]
     # comp
     else if arg 1 is "comp":
-      if {munchkits.user.%player%.compitem} is not set:
-        set {munchkits.user.%player%.compitem} to true
+      if {munchkits.user.%uuid of player%.compitem} is not set:
+        set {munchkits.user.%uuid of player%.compitem} to true
         format slot 13 of player with green stained glass named "&cDisable comp item" to run [make player execute command "/options comp"]
       else:
-        delete {munchkits.user.%player%.compitem}
+        delete {munchkits.user.%uuid of player%.compitem}
         format slot 13 of player with red stained glass named "&aEnable comp item" to run [make player execute command "/options comp"]
     else if arg 1 is "score":
-      if {munchkits.user.%player%.sb.toggle} is not set:
+      if {munchkits.user.%uuid of player%.sb.toggle} is not set:
         make player execute command "/munchscore toggle on -s"
         format slot 16 of player with green stained glass named "&cDisable scoreboard" to run [make player execute command "/options score"]
       else:
@@ -382,18 +385,18 @@ command /options [<text>]:
 # ## ---[ Spawn Protection ]--- ###
 # SpawnProt Removal
 on respawn:
-  delete {munchkits.user.%player%.spawnprot}
+  delete {munchkits.user.%uuid of player%.spawnprot}
 
 # SpawnProt Added
 on region exit:
   if "%region at player%" contains "Spawn":
-    if {munchkits.user.%player%.spawnprot} is not set:
+    if {munchkits.user.%uuid of player%.spawnprot} is not set:
       send "&aSpawn protection removed."
-      set {munchkits.user.%player%.spawnprot} to true
+      set {munchkits.user.%uuid of player%.spawnprot} to true
 
 # SpawnProt Damage Removal
 on damage:
-  if {munchkits.user.%victim%.spawnprot} is not set:
+  if {munchkits.user.%uuid of victim%.spawnprot} is not set:
     send "&c%victim% &7Still has spawn protection!" to attacker
     cancel event
 
@@ -407,8 +410,12 @@ command /kit [<text>]:
   trigger:
     if arg 1 is not set:
       open chest with 3 rows named "&aKit Selector" to player
+      wait 1 ticks
+      format slot 0 of player with diamond sword named "&aPvP" with lore "&aThe Basic PvP Kit." to close then run [make player execute command "/kit pvp"]
+      format slot 8 of player with nether star named "&aNinja" with lore "&aGo invis for 5 seconds. ||&aHas a 10 second cooldown." to close then run [make player execute command "/kit ninja"]
     else if arg 1 is "pvp":
-      if {munchkits.user.%player%.healtype} is 1:
+      set {munchkits.user.%uuid of player%.kitselect} to 0
+      if {munchkits.user.%uuid of player%.healtype} is 1:
         loop 36 times:
           set slot {_count} of player's inventory to potion of healing
           add 1 to {_count}
@@ -417,8 +424,8 @@ command /kit [<text>]:
           set slot {_count} of player's inventory to mushroom stew
           add 1 to {_count}
       set slot 0 of player's inventory to diamond sword
-    else if arg 1 is "pvp":
-      if {munchkits.user.%player%.healtype} is 1:
+    else if arg 1 is "ninja":
+      if {munchkits.user.%uuid of player%.healtype} is 1:
         loop 36 times:
           set slot {_count} of player's inventory to potion of healing
           add 1 to {_count}
@@ -426,7 +433,30 @@ command /kit [<text>]:
         loop 36 times:
           set slot {_count} of player's inventory to mushroom stew
           add 1 to {_count}
-      set slot 0 of player's inventory to diamond sword
+        apply swiftness 2 to player for 999 days
+        apply resistance 2 to player for 999 days
+        set slot 0 of player's inventory to diamond sword
+        set slot 1 of player's inventory to gray dye
+        set {munchkits.user.%uuid of player%.kitselect} to 1
+
+on right click with gray dye:
+  if {munchkits.user.%uuid of player%.kitselect} is 1:
+    if difference between {_lastuse} and now is smaller than 15 seconds:
+      send "&CStill on cooldown"
+    else:
+      set slot 1 of player's inventory to light green dye
+      send "&cYou are now invis"
+      set {_lastuse} to now
+      set the player's level to 15
+      apply invisibility to player
+      loop 5 times:
+        wait 1 seconds
+        reduce the player's level by 1
+      remove invisibility from the player
+      loop 10 times:
+        wait 1 seconds
+        reduce the player's level by 1
+      set slot 1 of player's inventory to gray dye
 
 # ## ---[ MunchEvents Intergration ]--- ###
 
@@ -453,23 +483,23 @@ on load:
 # Clears Drops // Modifys stats
 on death:
   clear drops
-  add 1 to {deaths::%player%}
-  add 1 to {kills::%attacker%}
+  add 1 to {deaths::%uuid of player%}
+  add 1 to {kills::%uuid of attacker%}
   make attacker execute command "/munchscore refresh"
   make player execute command "/munchscore refresh"
 
 # Edit Mode Cancels
 # Cancel pickup
 on pickup:
-  if {munchkits.user.%player%.edit} is not set:
+  if {munchkits.user.%uuid of player%.edit} is not set:
     cancel event
 # Cancels breaking stuff
 on break:
-  if {munchkits.user.%player%.edit} is not set:
+  if {munchkits.user.%uuid of player%.edit} is not set:
     cancel event
 # Cancels placing stuff
 on place:
-  if {munchkits.user.%player%.edit} is not set:
+  if {munchkits.user.%uuid of player%.edit} is not set:
     cancel event
 # Keeps hunger at max
 on hunger meter change:
@@ -509,9 +539,9 @@ command /admin [<text>]:
       send "&7/Admin alerts &8| &cToggles staff alerts (Useful for recording)."
     # Staff Mode
     else if arg 1 is "mode":
-      if {munchkits.user.%player%.staff} is not set:
+      if {munchkits.user.%uuid of player%.staff} is not set:
         send "{@prefix} &7Staff mode &aEnabled"
-        set {munchkits.user.%player%.staff} to true
+        set {munchkits.user.%uuid of player%.staff} to true
         make player execute command "/munchscore refresh"
         set {_count} to 0
         wait 1 tick
@@ -524,9 +554,9 @@ command /admin [<text>]:
         set {inv.legs.%uuid of player%} to player's leggings
         set {inv.boots.%uuid of player%} to player's boots
         clear player's inventory
-        if {munchkits.user.%player%.vanish} is not set:
+        if {munchkits.user.%uuid of player%.vanish} is not set:
           make player execute command "/vanish"
-        if {munchkits.user.%player%.fly} is not set:
+        if {munchkits.user.%uuid of player%.fly} is not set:
           make player execute command "/fly"
         set slot 0 of player's inventory to feather named "&eFly &8(&aEnabled&8)"
         set slot 1 of player's inventory to light green dye named "&eVanish &8(&aEnabled&8)"
@@ -535,10 +565,10 @@ command /admin [<text>]:
         set slot 8 of player's inventory to book named "&eInspect Player"
       else:
         send "{@prefix} &7Staff mode &cDisabled"
-        delete {munchkits.user.%player%.staff}
-        if {munchkits.user.%player%.vanish} is set:
+        delete {munchkits.user.%uuid of player%.staff}
+        if {munchkits.user.%uuid of player%.vanish} is set:
           make player execute command "/vanish"
-        if {munchkits.user.%player%.fly} is set:
+        if {munchkits.user.%uuid of player%.fly} is set:
           make player execute command "/fly"
         make player execute command "/munchscore refresh"
         set {_count} to 0
@@ -551,33 +581,33 @@ command /admin [<text>]:
         set the leggings of player to {inv.legs.%uuid of player%}
         set the boots of player to {inv.boots.%uuid of player%}
     else if arg 1 is "reports":
-      if {munchkits.user.%player%.staff.reports} is not set:
+      if {munchkits.user.%uuid of player%.staff.reports} is not set:
         send "{@prefix} &7Reports &aEnabled&7."
-        set {munchkits.user.%player%.staff.reports} to true
+        set {munchkits.user.%uuid of player%.staff.reports} to true
       else:
         send "{@prefix} &7Reports &cDisabled&7."
-        delete {munchkits.user.%player%.staff.reports}
+        delete {munchkits.user.%uuid of player%.staff.reports}
     else if arg 1 is "alerts":
-      if {munchkits.user.%player%.staff.alerts} is not set:
+      if {munchkits.user.%uuid of player%.staff.alerts} is not set:
         send "{@prefix} &7Alerts &aEnabled&7."
-        set {munchkits.user.%player%.staff.alerts} to true
+        set {munchkits.user.%uuid of player%.staff.alerts} to true
       else:
         send "{@prefix} &7Alerts &cDisabled&7."
-        delete {munchkits.user.%player%.staff.alerts}
+        delete {munchkits.user.%uuid of player%.staff.alerts}
     else if arg 1 is "ss":
-      if {munchkits.user.%player%.staff.socialspy} is not set:
+      if {munchkits.user.%uuid of player%.staff.socialspy} is not set:
         send "{@prefix} &7SocialSpy &aEnabled&7."
-        set {munchkits.user.%player%.staff.socialspy} to true
+        set {munchkits.user.%uuid of player%.staff.socialspy} to true
       else:
         send "{@prefix} &7SocialSpy &cDisabled&7."
-        delete {munchkits.user.%player%.staff.socialspy}
+        delete {munchkits.user.%uuid of player%.staff.socialspy}
     else if arg 1 is "cs":
-      if {munchkits.user.%player%.staff.commmandspy} is not set:
+      if {munchkits.user.%uuid of player%.staff.commmandspy} is not set:
         send "{@prefix} &7CommandSpy &aEnabled&7."
-        set {munchkits.user.%player%.staff.commmandspy} to true
+        set {munchkits.user.%uuid of player%.staff.commmandspy} to true
       else:
         send "{@prefix} &7CommandSpy &cDisabled&7."
-        delete {munchkits.user.%player%.staff.commmandspy}
+        delete {munchkits.user.%uuid of player%.staff.commmandspy}
 
 on command:
   loop all players:
@@ -586,8 +616,8 @@ on command:
 
 # Fly Item Toggle
 on click holding feather:
-  if {munchkits.user.%player%.staff} is set:
-    if {munchykits.user.%player%.fly} is true:
+  if {munchkits.user.%uuid of player%.staff} is set:
+    if {munchykits.user.%uuid of player%.fly} is true:
       wait 5 ticks
       make player execute command "/fly"
       make player execute command "/munchscore refresh"
@@ -600,14 +630,14 @@ on click holding feather:
 
 # Vanish Item Toggle
 on click holding light green dye:
-  if {munchkits.user.%player%.staff} is set:
+  if {munchkits.user.%uuid of player%.staff} is set:
     wait 5 ticks
     make player execute command "/vanish"
     make player execute command "/munchscore refresh"
     set slot 1 of player's inventory to gray dye named "&cVanish &8(&cDisabled&8)"
 
 on click holding gray dye:
-  if {munchkits.user.%player%.staff} is set:
+  if {munchkits.user.%uuid of player%.staff} is set:
     wait 5 ticks
     make player execute command "/vanish"
     make player execute command "/munchscore refresh"
@@ -618,17 +648,17 @@ command /vanish:
   permission: staff.admin.vanish
   permission message: &9Permissions> &7Sorry but you do not have the permission &c'staff.admin.vanish'&7.
   trigger:
-    if {munchkits.user.%player%.vanish} is true:
-      delete {munchkits.user.%player%.vanish}
+    if {munchkits.user.%uuid of player%.vanish} is true:
+      delete {munchkits.user.%uuid of player%.vanish}
       reveal player to all players
       send "{@prefix} &7You are now &cvisible&7."
-      if {munchkits.user.%player%.staff} is set:
+      if {munchkits.user.%uuid of player%.staff} is set:
         make player execute command "/munchscore refresh"
-    else if {munchkits.user.%player%.vanish} is not set:
-      set {munchkits.user.%player%.vanish} to true
+    else if {munchkits.user.%uuid of player%.vanish} is not set:
+      set {munchkits.user.%uuid of player%.vanish} to true
       hide player from all players
       send "{@prefix} &7You are now &ainvisible&7."
-      if {munchkits.user.%player%.staff} is set:
+      if {munchkits.user.%uuid of player%.staff} is set:
         make player execute command "/munchscore refresh"
 
 # Flight Toggle
@@ -637,29 +667,29 @@ command /fly [<player>]:
   permission: munchkits.fly
   permission message: {@noperm}
   trigger:
-    if {munchkits.user.%player%.fly} is not set:
-      set {munchkits.user.%player%.fly} to true
+    if {munchkits.user.%uuid of player%.fly} is not set:
+      set {munchkits.user.%uuid of player%.fly} to true
       set player's fly mode to true
       send "{@prefix} &7Flight mode &aEnabled"
     else:
-      delete {munchkits.user.%player%.fly}
+      delete {munchkits.user.%uuid of player%.fly}
       set player's fly mode to false
       send "{@prefix} &7Flight mode &cDisabled"
 
 # Flight Disable on quit
 on quit:
-  if {munchkits.user.%player%.fly} is set:
-    delete {munchkits.user.%player%.fly}
+  if {munchkits.user.%uuid of player%.fly} is set:
+    delete {munchkits.user.%uuid of player%.fly}
 
 # Scoreboard update on GM change
 on gamemode change to survival:
-  set {munchkits.user.%player%.gamemode} to 0
-  if {munchkits.user.%player%.staff} is set:
+  set {munchkits.user.%uuid of player%.gamemode} to 0
+  if {munchkits.user.%uuid of player%.staff} is set:
     make player execute command "/munchscore refresh"
 
 on gamemode change to creative:
-  set {munchkits.user.%player%.gamemode} to 1
-  if {munchkits.user.%player%.staff} is set:
+  set {munchkits.user.%uuid of player%.gamemode} to 1
+  if {munchkits.user.%uuid of player%.staff} is set:
     make player execute command "/munchscore refresh"
 
 # Player Info - Shows info of player. - Eg: Currently banned?, Playtime ## NOT FINISHED
@@ -844,11 +874,11 @@ command /akit [<text>] [<text>] [<text>]:
         send "{@prefix} &7Location of '&c1v1&7' set. "
     # Edit Mode
     else if arg 1 is "edit":
-      if {munchkits.user.%player%.edit} is not set:
-        set {munchkits.user.%player%.edit} to true
+      if {munchkits.user.%uuid of player%.edit} is not set:
+        set {munchkits.user.%uuid of player%.edit} to true
         send "{@prefix} &7Edit mode &aEnabled&7."
       else:
-        delete {munchkits.user.%player%.edit}
+        delete {munchkits.user.%uuid of player%.edit}
         send "{@prefix} &7Edit mode &cDisabled&7."
     # Command Blocker
     else if arg 1 is "block":
@@ -952,8 +982,8 @@ command /acoins [<text>] [<player>] [<number>]:
 
 # Disables Edit mode on quit
 on quit:
-  if {munchkits.user.%player%.edit} is set:
-    delete {munchkits.user.%player%.edit}
+  if {munchkits.user.%uuid of player%.edit} is set:
+    delete {munchkits.user.%uuid of player%.edit}
 
 command /aoptions [<text>] [<text>]:
   permission: munchkits.admin.config
