@@ -203,24 +203,33 @@ command /stats [<player>]:
 
 
 # Spawn
+on any move:
+  if {munchkits.user.%uuid of player%.ontp} is set:
+    delete {munchkits.user.%uuid of player%.ontp}
+    send "&cYou moved!"
+
 command /spawn:
   trigger:
     send "&aPlease stand still for 5 seconds"
-    clear player's inventory
-    delete {munchkits.user.%uuid of player%.kitselect}
-    remove resistance from the player
-    remove swiftness from the player
-    teleport player to {munchkits.main.warps.mainspawn}
-    set slot 0 of player's inventory to chest named "&aKit Selector"
-    set slot 8 of player's inventory to nether star named "&aOptions"
-    if {munchkits.user.%uuid of player%.healtype} is 1:
-      set slot 3 of player's inventory to potion of healing named "&aHealType: Pot"
-    else:
-      set slot 3 of player's inventory to mushroom stew named "&aHealType: Soup"
-    if {munchkits.user.%uuid of player%.compitem} is set:
-      set slot 6 of player's inventory to iron chestplate named "&aCompetitive"
-    if {munchkits.user.%uuid of player%.duelitem} is set:
-      set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
+    set {munchkits.user.%uuid of player%.ontp} to true
+    wait 5 seconds
+    if {munchkits.user.%uuid of player%.ontp} is true:
+      delete {munchkits.user.%uuid of player%.ontp}
+      clear player's inventory
+      delete {munchkits.user.%uuid of player%.kitselect}
+      remove resistance from the player
+      remove swiftness from the player
+      teleport player to {munchkits.main.warps.mainspawn}
+      set slot 0 of player's inventory to chest named "&aKit Selector"
+      set slot 8 of player's inventory to nether star named "&aOptions"
+      if {munchkits.user.%uuid of player%.healtype} is 1:
+        set slot 3 of player's inventory to potion of healing named "&aHealType: Pot"
+      else:
+        set slot 3 of player's inventory to mushroom stew named "&aHealType: Soup"
+      if {munchkits.user.%uuid of player%.compitem} is set:
+        set slot 6 of player's inventory to iron sword named "&aCompetitive"
+      if {munchkits.user.%uuid of player%.duelitem} is set:
+        set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
 
 
 # ## ---[ Scoreboard ]--- ###
