@@ -417,11 +417,15 @@ on click with chest:
 
 command /kit [<text>]:
   trigger:
+    if {munchkits.user.%uuid of player%.spawnprot} is set:
+      send "&cYou cannot change kit outside of spawn."
+      stop
     if arg 1 is not set:
       open chest with 3 rows named "&aKit Selector" to player
       wait 1 ticks
       format slot 0 of player with diamond sword named "&aPvP" with lore "&aThe Basic PvP Kit." to close then run [make player execute command "/kit pvp"]
-      format slot 8 of player with nether star named "&aNinja" with lore "&aGo invis for 5 seconds. ||&aHas a 10 second cooldown." to close then run [make player execute command "/kit ninja"]
+      format slot 1 of player with bow named "&aArcher" with lore "&aHas a bow." to close then run [make player execute command "/kit archer"]
+      format slot 8 of player with nether star named "&aNinja" with lore "&aGo invis for 5 seconds.||&aHas a 10 second cooldown." to close then run [make player execute command "/kit ninja"]
     else if arg 1 is "pvp":
       set {munchkits.user.%uuid of player%.kitselect} to 0
       if {munchkits.user.%uuid of player%.healtype} is 1:
@@ -433,6 +437,21 @@ command /kit [<text>]:
           set slot {_count} of player's inventory to mushroom stew
           add 1 to {_count}
       set slot 0 of player's inventory to diamond sword
+      enchant the player's diamond sword with sharpness 2
+    else if arg 1 is "archer":
+      set {munchkits.user.%uuid of player%.kitselect} to 1
+      if {munchkits.user.%uuid of player%.healtype} is 1:
+        loop 36 times:
+          set slot {_count} of player's inventory to potion of healing
+          add 1 to {_count}
+      else:
+        loop 36 times:
+          set slot {_count} of player's inventory to mushroom stew
+          add 1 to {_count}
+      set slot 0 of player's inventory to stone sword
+      set slot 1 of player's inventory to bow
+      enchant the player's bow with infinity 1
+      set slot 36 of player's inventory to arrow
     else if arg 1 is "ninja":
       if {munchkits.user.%uuid of player%.healtype} is 1:
         loop 36 times:
@@ -445,15 +464,15 @@ command /kit [<text>]:
         apply swiftness 2 to player for 999 days
         apply resistance 2 to player for 999 days
         set slot 0 of player's inventory to diamond sword
-        set slot 1 of player's inventory to gray dye
-        set {munchkits.user.%uuid of player%.kitselect} to 1
+        set slot 1 of player's inventory to gray dye named "&7Invis &8(&aOff Cooldown)"
+        set {munchkits.user.%uuid of player%.kitselect} to 8
 
 on right click with gray dye:
-  if {munchkits.user.%uuid of player%.kitselect} is 1:
+  if {munchkits.user.%uuid of player%.kitselect} is 8:
     if difference between {_lastuse} and now is smaller than 15 seconds:
       send "&CStill on cooldown"
     else:
-      set slot 1 of player's inventory to light green dye
+      set slot 1 of player's inventory to light green dye named "&7Invis &8(&cCooldown)"
       send "&cYou are now invis"
       set {_lastuse} to now
       set the player's level to 15
@@ -465,7 +484,7 @@ on right click with gray dye:
       loop 10 times:
         wait 1 seconds
         reduce the player's level by 1
-      set slot 1 of player's inventory to gray dye
+      set slot 1 of player's inventory to gray dye named "&7Invis &8(&aOff Cooldown)"
 
 # ## ---[ MunchEvents Intergration ]--- ###
 
