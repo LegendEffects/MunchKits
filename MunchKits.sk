@@ -504,6 +504,8 @@ command /admin [<text>]:
       send "&7/Admin &8| &cShows this help menu."
       send "&7/Admin mode &8| &cPuts you in admin mode."
       send "&7/Admin reports &8| &cToggles reports on / off."
+      send "&7/Admin cs &8| &cToggles CommandSpy on / off."
+      send "&7/Admin ss &8| &cToggles SocialSpy on / off."
       send "&7/Admin alerts &8| &cToggles staff alerts (Useful for recording)."
     # Staff Mode
     else if arg 1 is "mode":
@@ -556,12 +558,31 @@ command /admin [<text>]:
         send "{@prefix} &7Reports &cDisabled&7."
         delete {munchkits.user.%player%.staff.reports}
     else if arg 1 is "alerts":
-      if {munchkits.user.%player%.staff.reports} is not set:
+      if {munchkits.user.%player%.staff.alerts} is not set:
         send "{@prefix} &7Alerts &aEnabled&7."
         set {munchkits.user.%player%.staff.alerts} to true
       else:
         send "{@prefix} &7Alerts &cDisabled&7."
         delete {munchkits.user.%player%.staff.alerts}
+    else if arg 1 is "ss":
+      if {munchkits.user.%player%.staff.socialspy} is not set:
+        send "{@prefix} &7SocialSpy &aEnabled&7."
+        set {munchkits.user.%player%.staff.socialspy} to true
+      else:
+        send "{@prefix} &7SocialSpy &cDisabled&7."
+        delete {munchkits.user.%player%.staff.socialspy}
+    else if arg 1 is "cs":
+      if {munchkits.user.%player%.staff.commmandspy} is not set:
+        send "{@prefix} &7CommandSpy &aEnabled&7."
+        set {munchkits.user.%player%.staff.commmandspy} to true
+      else:
+        send "{@prefix} &7CommandSpy &cDisabled&7."
+        delete {munchkits.user.%player%.staff.commmandspy}
+
+on command:
+  loop all players:
+    if {munchkits.user.%uuid of loop-player%.staff.commandspy} is true:
+      send "&9[CS] &7%player%> &c%command%" to loop-player
 
 # Fly Item Toggle
 on click holding feather:
