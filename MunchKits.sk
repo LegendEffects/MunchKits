@@ -27,17 +27,17 @@ command /mute [<player>] [<text>]:
     if arg 2 is not set:
       send "{@prefix} &7Usage: /mute <player> <reason>"
       stop
-    if {munchykits.punishments.mute.%arg 1%} is not set:
-      set {munchykits.punishments.mute.%arg 1%} to true
-      set {munchykits.punishments.mute.%arg 1%.reason} to arg 2
-      set {munchykits.punishments.mute.%arg 1%.punisher} to player
+    if {munchykits.punishments.mute.%uuid of arg 1%} is not set:
+      set {munchykits.punishments.mute.%uuid of arg 1%} to true
+      set {munchykits.punishments.mute.%uuid of arg 1%.reason} to arg 2
+      set {munchykits.punishments.mute.%uuid of arg 1%.punisher} to player
       send "&aYou have muted &c%arg 1% &afor '&c%arg 2%&a'."
       loop all players:
         if loop-player has the permission "munchkits.admin":
           send "&c%arg 1% &ahas been muted by &c%player% &afor '&c%arg 2%&a'." to loop-player
       broadcast "{@MuteBroadcast}"
     else:
-      send "{@prefix} &7That player is already muted by &c%{munchykits.punishments.mute.%arg 1%.punisher}% &7for '&c%{munchykits.punishments.mute.%arg 1%.reason}%&7'."
+      send "{@prefix} &7That player is already muted by &c%{munchykits.punishments.mute.%uuid of arg 1%.punisher}% &7for '&c%{munchykits.punishments.mute.%uuid of arg 1%.reason}%&7'."
 
 command /unmute [<player>]:
   permission: munchkits.admin.unmute
@@ -46,10 +46,10 @@ command /unmute [<player>]:
     if arg 1 is not set:
       send "{@prefix} &7You need to specify a player"
       stop
-    if {munchykits.punishments.mute.%arg 1%} is set:
-      delete {munchykits.punishments.mute.%arg 1%}
-      delete {munchykits.punishments.mute.%arg 1%.reason}
-      delete {munchykits.punishments.mute.%arg 1%.punisher}
+    if {munchykits.punishments.mute.%uuid of arg 1%} is set:
+      delete {munchykits.punishments.mute.%uuid of arg 1%}
+      delete {munchykits.punishments.mute.%uuid of arg 1%.reason}
+      delete {munchykits.punishments.mute.%uuid of arg 1%.punisher}
       send "{@prefix} &7Player &c%arg 1%&7 successfully unmuted."
       send "{@prefix} &aYou have unbanned &c%arg 1%&a."
       loop all players:
@@ -76,12 +76,12 @@ command /ban [<offlineplayer>] [<text>]:
     if arg 2 is not set:
       send "{@prefix} &7Usage: /ban <player> <reason>"
       stop
-    set {munchykits.punishments.ban.%arg 1%} to true
-    set {munchykits.punishments.ban.%arg 1%.punisher} to player
-    set {munchykits.punishments.ban.%arg 1%.reason} to arg 2
-    set {munchykits.punishments.ban.%arg 1%.ip} to false
-    set {munchykits.punishments.ban.%arg 1%.time} to now
-    set {munchykits.punishments.ban.%arg 1%.expire} to "Never"
+    set {munchykits.punishments.ban.%uuid of arg 1%} to true
+    set {munchykits.punishments.ban.%uuid of arg 1%.punisher} to player
+    set {munchykits.punishments.ban.%uuid of arg 1%.reason} to arg 2
+    set {munchykits.punishments.ban.%uuid of arg 1%.ip} to false
+    set {munchykits.punishments.ban.%uuid of arg 1%.time} to now
+    set {munchykits.punishments.ban.%uuid of arg 1%.expire} to "Never"
     send "{@prefix} &aYou have banned &c%arg 1% &afor &c%arg 2%&a."
     loop all players:
       if loop-player has the permission "munchkits.admin":
@@ -95,12 +95,12 @@ command /unban [<offlineplayer>]:
     if arg 1 is not set:
       send "{@prefix} &7Usage: /unban <player>"
       stop
-    delete {munchykits.punishments.ban.%arg 1%}
-    delete {munchykits.punishments.ban.%arg 1%.punisher}
-    delete {munchykits.punishments.ban.%arg 1%.reason}
-    delete {munchykits.punishments.ban.%arg 1%.ip}
-    delete {munchykits.punishments.ban.%arg 1%.time}
-    delete {munchykits.punishments.ban.%arg 1%.expire}
+    delete {munchykits.punishments.ban.%uuid of arg 1%}
+    delete {munchykits.punishments.ban.%uuid of arg 1%.punisher}
+    delete {munchykits.punishments.ban.%uuid of arg 1%.reason}
+    delete {munchykits.punishments.ban.%uuid of arg 1%.ip}
+    delete {munchykits.punishments.ban.%uuid of arg 1%.time}
+    delete {munchykits.punishments.ban.%uuid of arg 1%.expire}
     send "{@prefix} &aYou have unbanned &c%arg 1%&a."
     loop all players:
       if loop-player has the permission "munchkits.admin":
@@ -710,7 +710,7 @@ command /info [<player>]:
       send "{@prefix} &7ERROR: You need to specify a player."
       stop
     open chest with 3 rows named "&c%arg 1%&7's info." to player
-    if {munchykits.punishments.ban.%arg 1%} is not set:
+    if {munchykits.punishments.ban.%uuid of arg 1%} is not set:
       format slot 10 of player with red dye named "Currently banned?" with lore "&aNo." to be unstealable
     else:
       format slot 10 of player with red dye named "Currently banned?" with lore "&cYes." to be unstealable
@@ -807,8 +807,8 @@ command /astats [<text>] [<player>]:
         send "{@prefix} &7No player specified!"
       else:
         send "{@prefix} &7Reset &c%arg 2%&7's stats successfully."
-        set {deaths::%arg 2%} to 0
-        set {kills::%arg 2%} to 0
+        set {deaths::%uuid of arg 2%} to 0
+        set {kills::%uuid of arg 2%} to 0
     else if arg 1 is "resetall":
       send "{@prefix} &7Reset everyones stats successfully."
       set {deaths::*} to 0
@@ -943,7 +943,7 @@ command /acoins [<text>] [<player>] [<number>]:
         send "{@prefix} &7You cannot set a players balance to less than 0!"
       else:
         send "{@prefix} &7Successfully set &c%arg 2%&7's balance to &c%arg 3% &7Coins!"
-        set {balance::%arg 2%} to arg 3
+        set {balance::%uuid of arg 2%} to arg 3
         if arg 2 is online:
           make arg 2 execute command "/munchscore refresh"
 
@@ -958,8 +958,8 @@ command /acoins [<text>] [<player>] [<number>]:
         send "{@prefix} &7You cannot add negatives to a players balance!"
         stop
       else:
-        add arg 3 to {balance::%arg 2%}
-        send "{@prefix} &7Successfully added &c%arg 3%&7 Coins to &c%arg 2%&7's balance. Which is now &c%{balance::%arg 2%}%&7 Coins."
+        add arg 3 to {balance::%uuid of arg 2%}
+        send "{@prefix} &7Successfully added &c%arg 3%&7 Coins to &c%arg 2%&7's balance. Which is now &c%{balance::%uuid of arg 2%}%&7 Coins."
         if arg 2 is online:
           make arg 2 execute command "/munchscore refresh"
 
@@ -974,8 +974,8 @@ command /acoins [<text>] [<player>] [<number>]:
         send "{@prefix} &7You cannot deduct negatives from a players balance!"
         stop
       else:
-        subtract arg 3 from {balance::%arg 2%}
-        send "{@prefix} &7Successfully removed &c%arg 3%&7 Coins from &c%arg 2%&7's balance. Which is now &c%{balance::%arg 2%}%&7 Coins."
+        subtract arg 3 from {balance::%uuid of arg 2%}
+        send "{@prefix} &7Successfully removed &c%arg 3%&7 Coins from &c%arg 2%&7's balance. Which is now &c%{balance::%uuid of arg 2%}%&7 Coins."
         if arg 2 is online:
           make arg 2 execute command "/munchscore refresh"
     else if arg 1 is "reset":
@@ -983,7 +983,7 @@ command /acoins [<text>] [<player>] [<number>]:
         send "{@prefix} &7No player was specified!"
         stop
       else:
-        delete {balance::%arg 2%}
+        delete {balance::%uuid of arg 2%}
         send "{@prefix} &7Successfully reset &c%arg 2%&7's balance."
     else if arg 1 is "resetall":
       delete {balance::*}
