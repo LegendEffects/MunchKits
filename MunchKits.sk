@@ -214,6 +214,7 @@ command /spawn:
     set {munchkits.user.%uuid of player%.ontp} to true
     wait 5 seconds
     if {munchkits.user.%uuid of player%.ontp} is true:
+      delete {munchkits.user.%uuid of player%.spawnprot}
       delete {munchkits.user.%uuid of player%.ontp}
       clear player's inventory
       delete {munchkits.user.%uuid of player%.kitselect}
@@ -456,7 +457,6 @@ command /kit [<text>]:
       set {munchkits.user.%uuid of player%.kitselect} to 0
       potsFill(player)
       set slot 0 of player's inventory to diamond sword
-<<<<<<< HEAD
 
     else if arg 1 is "ninja":
       potsFill(player)
@@ -464,38 +464,15 @@ command /kit [<text>]:
       apply resistance 2 to player for 999 days
       set slot 0 of player's inventory to diamond sword
       set slot 1 of player's inventory to gray dye
-      set {munchkits.user.%uuid of player%.kitselect} to 1
-=======
-      enchant the player's diamond sword with sharpness 2
+      set {munchkits.user.%uuid of player%.kitselect} to 8
+
     else if arg 1 is "archer":
       set {munchkits.user.%uuid of player%.kitselect} to 1
-      if {munchkits.user.%uuid of player%.healtype} is 1:
-        loop 36 times:
-          set slot {_count} of player's inventory to potion of healing
-          add 1 to {_count}
-      else:
-        loop 36 times:
-          set slot {_count} of player's inventory to mushroom stew
-          add 1 to {_count}
+      potsFill(player)
       set slot 0 of player's inventory to stone sword
       set slot 1 of player's inventory to bow
-      enchant the player's bow with infinity 1
-      set slot 36 of player's inventory to arrow
-    else if arg 1 is "ninja":
-      if {munchkits.user.%uuid of player%.healtype} is 1:
-        loop 36 times:
-          set slot {_count} of player's inventory to potion of healing
-          add 1 to {_count}
-      else:
-        loop 36 times:
-          set slot {_count} of player's inventory to mushroom stew
-          add 1 to {_count}
-        apply swiftness 2 to player for 999 days
-        apply resistance 2 to player for 999 days
-        set slot 0 of player's inventory to diamond sword
-        set slot 1 of player's inventory to gray dye named "&7Invis &8(&aOff Cooldown)"
-        set {munchkits.user.%uuid of player%.kitselect} to 8
->>>>>>> origin/master
+      set slot 35 of player's inventory to arrow
+      enchant slot 1 of player's inventory with infinity 1
 
 on right click with gray dye:
   if {munchkits.user.%uuid of player%.kitselect} is 8:
