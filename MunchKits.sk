@@ -222,10 +222,6 @@ command /spawn:
       teleport player to {munchkits.main.warps.mainspawn}
       set slot 0 of player's inventory to chest named "&aKit Selector"
       set slot 8 of player's inventory to nether star named "&aOptions"
-      if {munchkits.user.%uuid of player%.healtype} is 1:
-        set slot 3 of player's inventory to potion of healing named "&aHealType: Pot"
-      else:
-        set slot 3 of player's inventory to mushroom stew named "&aHealType: Soup"
       if {munchkits.user.%uuid of player%.compitem} is set:
         set slot 6 of player's inventory to iron sword named "&aCompetitive"
       if {munchkits.user.%uuid of player%.duelitem} is set:
@@ -348,48 +344,68 @@ command /options [<text>]:
     if arg 1 is not set:
       open chest with 2 rows named "&aOptions" to player
       # Duel Requests
-      format slot 1 of player with beacon named "&aDuel Item" to be unstealable
+      format slot 1 of player with diamond sword named "&a1v1 Item" to be unstealable
       if {munchkits.user.%uuid of player%.duelitem} is not set:
-        format slot 10 of player with red stained glass named "&aEnable duel item" to run [make player execute command "/options duels"]
+        format slot 10 of player with red stained glass named "&aEnable 1v1 item" to run [make player execute command "/options duels"]
       else:
-        format slot 10 of player with green stained glass named "&cDisable duel item" to run [make player execute command "/options duels"]
+        format slot 10 of player with green stained glass named "&cDisable 1v1 item" to run [make player execute command "/options duels"]
 
       # Competitive
-      format slot 4 of player with ender portal frame named "&aCompetitive Item" to be unstealable
+      format slot 3 of player with iron sword named "&aCompetitive Item" to be unstealable
       if {munchkits.user.%uuid of player%.compitem} is not set:
-        format slot 13 of player with red stained glass named "&aEnable comp item" to run [make player execute command "/options comp"]
+        format slot 12 of player with red stained glass named "&aEnable comp item" to run [make player execute command "/options comp"]
       else:
-        format slot 13 of player with green stained glass named "&cDisable comp item" to run [make player execute command "/options comp"]
+        format slot 12 of player with green stained glass named "&cDisable comp item" to run [make player execute command "/options comp"]
       # Scoreboard
-      format slot 7 of player with name tag named "&a Scoreboard toggle" to be unstealable
+      format slot 5 of player with name tag named "&aScoreboard toggle" to be unstealable
       if {munchkits.user.%uuid of player%.sb.toggle} is not set:
-        format slot 16 of player with red stained glass named "&aEnable scoreboard" to run [make player execute command "/options score"]
+        format slot 14 of player with red stained glass named "&aEnable scoreboard" to run [make player execute command "/options score"]
       else:
-        format slot 16 of player with green stained glass named "&cDisable scoreboard" to run [make player execute command "/options score"]
+        format slot 14 of player with green stained glass named "&cDisable scoreboard" to run [make player execute command "/options score"]
+      # Healtype
+      format slot 7 of player with splash potion of healing named "&aHealtype" to be unstealable
+      if {munchkits.user.%uuid of player%.healtype} is 1:
+        format slot 16 of player with green stained glass named "&aSwitch to soup" to run [make player execute command "/options healtype"]
+      else:
+        format slot 16 of player with red stained glass named "&cSwitch to pots" to run [make player execute command "/options healtype"]
 
     # duel
     else if arg 1 is "duels":
       if {munchkits.user.%uuid of player%.duelitem} is not set:
         set {munchkits.user.%uuid of player%.duelitem} to true
-        format slot 10 of player with green stained glass named "&cDisable duel item" to run [make player execute command "/options duels"]
+        format slot 10 of player with green stained glass named "&cDisable 1v1 item" to run [make player execute command "/options duels"]
+        set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
       else:
         delete {munchkits.user.%uuid of player%.duelitem}
-        format slot 10 of player with red stained glass named "&aEnable duel item" to run [make player execute command "/options duels"]
+        set slot 7 of player's inventory to air
+        format slot 10 of player with red stained glass named "&aEnable 1v1 item" to run [make player execute command "/options duels"]
     # comp
     else if arg 1 is "comp":
       if {munchkits.user.%uuid of player%.compitem} is not set:
         set {munchkits.user.%uuid of player%.compitem} to true
-        format slot 13 of player with green stained glass named "&cDisable comp item" to run [make player execute command "/options comp"]
+        set slot 6 of player's inventory to iron sword named "&aCompetitive"
+        format slot 12 of player with green stained glass named "&cDisable comp item" to run [make player execute command "/options comp"]
       else:
         delete {munchkits.user.%uuid of player%.compitem}
-        format slot 13 of player with red stained glass named "&aEnable comp item" to run [make player execute command "/options comp"]
+        set slot 6 of player's inventory to air
+        format slot 12 of player with red stained glass named "&aEnable comp item" to run [make player execute command "/options comp"]
+    # score
     else if arg 1 is "score":
       if {munchkits.user.%uuid of player%.sb.toggle} is not set:
         make player execute command "/munchscore toggle on -s"
-        format slot 16 of player with green stained glass named "&cDisable scoreboard" to run [make player execute command "/options score"]
+        format slot 14 of player with green stained glass named "&cDisable scoreboard" to run [make player execute command "/options score"]
       else:
         make player execute command "/munchscore toggle off -s"
-        format slot 16 of player with red stained glass named "&aEnable scoreboard" to run [make player execute command "/options score"]
+        format slot 14 of player with red stained glass named "&aEnable scoreboard" to run [make player execute command "/options score"]
+    # healtype
+    else if arg 1 is "healtype":
+      if {munchkits.user.%uuid of player%.healtype} is 1:
+        delete {munchkits.user.%uuid of player%.healtype}
+        format slot 16 of player with red stained glass named "&cSwitch to pots" to run [make player execute command "/options healtype"]
+      else:
+        set {munchkits.user.%uuid of player%.healtype} to 1
+        format slot 16 of player with green stained glass named "&aSwitch to soup" to run [make player execute command "/options healtype"]
+
 
 # ## ---[ Spawn Protection ]--- ###
 # SpawnProt Removal
@@ -410,6 +426,16 @@ on damage:
     cancel event
 
 # ## ---[ Kits ]--- ###
+function potsFill(p: player):
+  set {_uuid} to uuid of {_p}
+  if {munchkits.user.%{_uuid}%.healtype} is 1:
+    loop 36 times:
+      set slot {_count} of {_p}'s inventory to splash potion of healing
+      add 1 to {_count}
+  else:
+    loop 36 times:
+      set slot {_count} of {_p}'s inventory to mushroom stew
+      add 1 to {_count}
 
 on click with chest:
   name of player's tool is "&aKit Selector":
@@ -424,29 +450,16 @@ command /kit [<text>]:
       format slot 8 of player with nether star named "&aNinja" with lore "&aGo invis for 5 seconds. ||&aHas a 10 second cooldown." to close then run [make player execute command "/kit ninja"]
     else if arg 1 is "pvp":
       set {munchkits.user.%uuid of player%.kitselect} to 0
-      if {munchkits.user.%uuid of player%.healtype} is 1:
-        loop 36 times:
-          set slot {_count} of player's inventory to potion of healing
-          add 1 to {_count}
-      else:
-        loop 36 times:
-          set slot {_count} of player's inventory to mushroom stew
-          add 1 to {_count}
+      potsFill(player)
       set slot 0 of player's inventory to diamond sword
+
     else if arg 1 is "ninja":
-      if {munchkits.user.%uuid of player%.healtype} is 1:
-        loop 36 times:
-          set slot {_count} of player's inventory to potion of healing
-          add 1 to {_count}
-      else:
-        loop 36 times:
-          set slot {_count} of player's inventory to mushroom stew
-          add 1 to {_count}
-        apply swiftness 2 to player for 999 days
-        apply resistance 2 to player for 999 days
-        set slot 0 of player's inventory to diamond sword
-        set slot 1 of player's inventory to gray dye
-        set {munchkits.user.%uuid of player%.kitselect} to 1
+      potsFill(player)
+      apply swiftness 2 to player for 999 days
+      apply resistance 2 to player for 999 days
+      set slot 0 of player's inventory to diamond sword
+      set slot 1 of player's inventory to gray dye
+      set {munchkits.user.%uuid of player%.kitselect} to 1
 
 on right click with gray dye:
   if {munchkits.user.%uuid of player%.kitselect} is 1:
@@ -551,6 +564,7 @@ command /admin [<text>]:
       if {munchkits.user.%uuid of player%.staff} is not set:
         send "{@prefix} &7Staff mode &aEnabled"
         set {munchkits.user.%uuid of player%.staff} to true
+        delete {munchkits.user.%uuid of player%.kitselect}
         make player execute command "/munchscore refresh"
         set {_count} to 0
         wait 1 tick
