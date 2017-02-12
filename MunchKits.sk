@@ -1,5 +1,9 @@
 options:
-  resetStatsOnLeave: true
+  # Options
+  getPVPonJoin: true # Gives player the PVP kit in the kit selector
+  getARCHERonJoin: true # Gives player the ARCHER kit in the kit selector
+  getDASHonJoin: true # Gives player the DASH kit in the kit selector
+  getDRAGONonJoin: true # Gives player the DRAGON kit in the kit selector
   # Messages
   prefix: &aKits>
   noperm: &aKits> &7You need a higher rank to do that.
@@ -12,8 +16,16 @@ options:
   UnBanBroadcast: &a%arg 1% has been unbanned by %player%
 
 on quit:
-  delete {munchykits.user.%uuid of player%.flight}
+  delete {munchkits.user.%uuid of player%.spawnprot}
 
+on join:
+  if {munchkits.user.%uuid of player%.kits.1.owned} is not set:
+    if {@getARCHERonJoin} is true:
+      set {munchkits.user.%uuid of player%.kits.1.owned} to true
+
+  if {munchkits.user.%uuid of player%.kits.9.owned} is not set:
+    if {@getPVPonJoin} is true:
+      set {munchkits.user.%uuid of player%.kits.9.owned} to true
 # ## ---[ Punishments ]--- ###
 
 # Mutes
@@ -180,14 +192,9 @@ on join:
     wait 1 ticks
     set slot 0 of player's inventory to chest named "&aKit Selector"
     set slot 8 of player's inventory to nether star named "&aOptions"
-    # checking if heal type is soup or pots
-    if {munchkits.user.%uuid of player%.healtype} is 1:
-      set slot 3 of player's inventory to potion of healing named "&aHealType: Pot"
-    else:
-      set slot 3 of player's inventory to mushroom stew named "&aHealType: Soup"
     # Checks user settings if comp // duel item are enabled
     if {munchkits.user.%uuid of player%.compitem} is set:
-      set slot 6 of player's inventory to iron chestplate named "&aCompetitive"
+      set slot 6 of player's inventory to iron sword named "&aCompetitive"
     if {munchkits.user.%uuid of player%.duelitem} is set:
       set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
 
@@ -419,6 +426,11 @@ on region exit:
     if {munchkits.user.%uuid of player%.spawnprot} is not set:
       send "&aSpawn protection removed."
       set {munchkits.user.%uuid of player%.spawnprot} to true
+on region enter:
+  if "%region at player%" contains "Spawn":
+    if {munchkits.user.%uuid of player%.spawnprot} is set:
+      send "&aSpawn protection added."
+      delete {munchkits.user.%uuid of player%.spawnprot}
 
 # SpawnProt Damage Removal
 on damage:
@@ -427,6 +439,8 @@ on damage:
     cancel event
 
 # ## ---[ Kits ]--- ###
+
+# Checks pot type and gives correct pots
 function potsFill(p: player):
   set {_uuid} to uuid of {_p}
   if {munchkits.user.%{_uuid}%.healtype} is 1:
@@ -448,24 +462,44 @@ command /kit [<text>]:
       send "&cYou cannot change kit outside of spawn."
       stop
     if arg 1 is not set:
-      open chest with 3 rows named "&aKit Selector" to player
+      open chest with 3 rows named "&a&lCasual Kit Selector" to player
       wait 1 ticks
-      format slot 0 of player with diamond sword named "&aPvP" with lore "&aThe Basic PvP Kit." to close then run [make player execute command "/kit pvp"]
-      format slot 1 of player with bow named "&aArcher" with lore "&aHas a bow." to close then run [make player execute command "/kit archer"]
-      format slot 8 of player with nether star named "&aNinja" with lore "&aGo invis for 5 seconds.||&aHas a 10 second cooldown." to close then run [make player execute command "/kit ninja"]
+# Select GUI
+      if {munchkits.user.%uuid of player%.kits.0.owned} is set:
+        format slot 0 of player with brown wool named "&aOWNED &6Abomination" with lore "&7Get a brown wool that will blind everyone||&7in a 7 block radius for 5 seconds" to close then run [make player execute command "/kit abomination"]
+      else:
+        format slot 0 of player with brown wool named "&cUNOWNED &6Abomination" with lore "&7Get a brown wool that will blind everyone||&7in a 7 block radius for 5 seconds" to be unstealable
+      if {munchkits.user.%uuid of player%.kits.1.owned} is set:
+        format slot 1 of player with bow named "&aOWNED &6Archer" with lore "&7Start with a bow with Power II, Punch I and Infinity I!" to close then run [make player execute command "/kit archer"]
+      else:
+        format slot 1 of player with bow named "&cUNOWNED &6Archer" with lore "&7Start with a bow with Power II, Punch I and Infinity I!" to be unstealable
+      if {munchkits.user.%uuid of player%.kits.2.owned} is set:
+        format slot 2 of player with bow named "&aOWNED &6Crossbow" with lore "&7Start with a bow and 20 arrows.||&7Get an arrow back when you hit someone||&7If your bow is fully charged||&7the arrow will explode on impact." to close then run [make player execute command "/kit archer"]
+      else:
+        format slot 2 of player with bow named "&cUNOWNED &6Crossbow" with lore "&7Start with a bow and 20 arrows.||&7Get an arrow back when you hit someone||&7If your bow is fully charged||&7the arrow will explode on impact." to be unstealable
+      if {munchkits.user.%uuid of player%.kits.8.owned} is set:
+        format slot 8 of player with redstone dust named "&aOWNED &6Ninja" with lore "&7Get redstone dust that makes you invisable for 5 seconds!||&7However, if you damage someone, you lose your invisibility." to close then run [make player execute command "/kit ninja"]
+      else:
+        format slot 8 of player with redstone dust named "&CUNOWNED &6Ninja" with lore "&7Get redstone dust that makes you invisable for 5 seconds!||&7However, if you damage someone, you lose your invisibility." to be unstealable
+      if {munchkits.user.%uuid of player%.kits.9.owned} is set:
+        format slot 9 of player with diamond sword named "&aOWNED &6PVP" with lore "&7The most standard pvp kit." to close then run [make player execute command "/kit pvp"]
+      else:
+        format slot 9 of player with diamond sword named "&cUNOWNED &6PVP" with lore "&7The most standard pvp kit." to be unstealable
+# PvP
     else if arg 1 is "pvp":
-      set {munchkits.user.%uuid of player%.kitselect} to 0
+      set {munchkits.user.%uuid of player%.kitselect} to 9
       potsFill(player)
       set slot 0 of player's inventory to diamond sword
-
+# Ninja
     else if arg 1 is "ninja":
       potsFill(player)
       apply swiftness 2 to player for 999 days
       apply resistance 2 to player for 999 days
       set slot 0 of player's inventory to diamond sword
-      set slot 1 of player's inventory to gray dye
+      set slot 1 of player's inventory to redstone dust named "&7Invis &8(&aOff Cooldown&8)"
+      enchant slot 0 of player's inventory with sharpness 3
       set {munchkits.user.%uuid of player%.kitselect} to 8
-
+# Archer
     else if arg 1 is "archer":
       set {munchkits.user.%uuid of player%.kitselect} to 1
       potsFill(player)
@@ -473,13 +507,16 @@ command /kit [<text>]:
       set slot 1 of player's inventory to bow
       set slot 35 of player's inventory to arrow
       enchant slot 1 of player's inventory with infinity 1
+      enchant slot 1 of player's inventory with power 2
+      enchant slot 1 of player's inventory with punch 1
 
-on right click with gray dye:
+# Ninja invis // Cooldown // Invisrm on attack
+on right click with redstone dust:
   if {munchkits.user.%uuid of player%.kitselect} is 8:
     if difference between {_lastuse} and now is smaller than 15 seconds:
       send "&CStill on cooldown"
     else:
-      set slot 1 of player's inventory to light green dye named "&7Invis &8(&cCooldown)"
+      set slot 1 of player's inventory to gray dye named "&7Invis &8(&cCooldown&8)"
       send "&cYou are now invis"
       set {_lastuse} to now
       set the player's level to 15
@@ -491,8 +528,33 @@ on right click with gray dye:
       loop 10 times:
         wait 1 seconds
         reduce the player's level by 1
-      set slot 1 of player's inventory to gray dye named "&7Invis &8(&aOff Cooldown)"
+      set slot 1 of player's inventory to redstone dust named "&7Invis &8(&aOff Cooldown&8)"
 
+on damage of player:
+  if {munchkits.user.%uuid of attacker%.kitselect} is 8:
+    remove invisibility from the attacker
+
+command /kitsadmin [<text>] [<player>] [<text>]:
+  permission: munchkits.admin.kits
+  permission message: {@noperm}
+  trigger:
+    if arg 1 is not set:
+      send "&8--------------[ &aMunchKits Kits &aHelp &7(1/1) &8]--------------"
+      send "&7/KitsAdmin give <player> <kit> &8| &cGives player a kit."
+      send "&7/KitsAdmin remove <player> <kit> &8| &cGives player a kit."
+    else if arg 1 is "give":
+      if arg 2 is not set:
+        send "{@prefix} &7No player was specified!"
+        stop
+      if arg 3 is not set:
+        send "{@prefix} &7No kit was specified!"
+        stop
+      if arg 3 is "abomination":
+        set {munchkits.user.%uuid of arg 2%.kits.0.owned} to true
+      else if arg 3 is "archer":
+        set {munchkits.user.%uuid of arg 2%.kits.1.owned} to true
+      else if arg 3 is "ninja":
+        set {munchkits.user.%uuid of arg 2%.kits.8.owned} to true
 # ## ---[ MunchEvents Intergration ]--- ###
 
 on load:
@@ -516,12 +578,33 @@ on load:
     delete {munchkits.main.reload}
 
 # Clears Drops // Modifys stats
+on drop:
+  if event-item is not bowl:
+    cancel event
+    send "&aYou might want to keep that."
+
 on death:
   clear drops
   add 1 to {deaths::%uuid of player%}
   add 1 to {kills::%uuid of attacker%}
   make attacker execute command "/munchscore refresh"
   make player execute command "/munchscore refresh"
+  wait 1 ticks
+  force respawn victim
+
+on respawn:
+  teleport player to {munchkits.main.warps.mainspawn}
+  delete {munchkits.user.%uuid of player%.spawnprot}
+  clear player's inventory
+  delete {munchkits.user.%uuid of player%.kitselect}
+  remove resistance from the player
+  remove swiftness from the player
+  set slot 0 of player's inventory to chest named "&aKit Selector"
+  set slot 8 of player's inventory to nether star named "&aOptions"
+  if {munchkits.user.%uuid of player%.compitem} is set:
+    set slot 6 of player's inventory to iron sword named "&aCompetitive"
+  if {munchkits.user.%uuid of player%.duelitem} is set:
+    set slot 7 of player's inventory to diamond sword named "&a1v1 Arena"
 
 # Edit Mode Cancels
 # Cancel pickup
