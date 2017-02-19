@@ -474,9 +474,13 @@ command /kit [<text>]:
       else:
         format slot 1 of player with bow named "&cUNOWNED &6Archer" with lore "&7Start with a bow with Power II, Punch I and Infinity I!" to be unstealable
       if {munchkits.user.%uuid of player%.kits.2.owned} is set:
-        format slot 2 of player with bow named "&aOWNED &6Crossbow" with lore "&7Start with a bow and 20 arrows.||&7Get an arrow back when you hit someone||&7If your bow is fully charged||&7the arrow will explode on impact." to close then run [make player execute command "/kit archer"]
+        format slot 2 of player with arrow named "&aOWNED &6Crossbow" with lore "&7Start with a bow and 20 arrows.||&7Get an arrow back when you hit someone||&7If your bow is fully charged||&7the arrow will explode on impact." to close then run [make player execute command "/kit archer"]
       else:
-        format slot 2 of player with bow named "&cUNOWNED &6Crossbow" with lore "&7Start with a bow and 20 arrows.||&7Get an arrow back when you hit someone||&7If your bow is fully charged||&7the arrow will explode on impact." to be unstealable
+        format slot 2 of player with arrow named "&cUNOWNED &6Crossbow" with lore "&7Start with a bow and 20 arrows.||&7Get an arrow back when you hit someone||&7If your bow is fully charged||&7the arrow will explode on impact." to be unstealable
+      if {munchkits.user.%uuid of player%.kits.3.owned} is set:
+        format slot 2 of player with arrow named "&aOWNED &6Dash" with lore "&7Get sugar that gives you a big speed boost." to close then run [make player execute command "/kit archer"]
+      else:
+        format slot 2 of player with arrow named "&cUNOWNED &6Dash" with lore "&7Get sugar that gives you a big speed boost." to be unstealable
       if {munchkits.user.%uuid of player%.kits.8.owned} is set:
         format slot 8 of player with redstone dust named "&aOWNED &6Ninja" with lore "&7Get redstone dust that makes you invisable for 5 seconds!||&7However, if you damage someone, you lose your invisibility." to close then run [make player execute command "/kit ninja"]
       else:
